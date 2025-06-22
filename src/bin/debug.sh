@@ -100,6 +100,7 @@ _main() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     _main "$@"
 else
+    [[ ! -z "${DEBUG:-}" ]] && enable_debug_mode
     export -f enable_debug_mode
     export -f disable_debug_mode
     export -f restore_debug_mode
