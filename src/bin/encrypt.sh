@@ -34,6 +34,16 @@ _help() {
     echo
 }
 
+_ensure_gpg_loopback_enabled() {
+  local conf="$HOME/.gnupg/gpg-agent.conf"
+  local opt="allow-loopback-pinentry"
+  mkdir -p "$(dirname "$conf")"
+  if ! grep -Fxq "$opt" "$conf" 2>/dev/null; then
+    echo "$opt" >> "$conf"
+  fi
+  gpgconf --kill gpg-agent
+}
+
 encrypt() {
   local input=()
   local output=""
@@ -41,25 +51,52 @@ encrypt() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --input) shift; while [[ "$1" != "--"* && -n "$1" ]]; do input+=("$1"); shift; done ;;
-      --output) output="$2"; shift 2 ;;
-      --delete) delete=true; shift ;;
-      --help|-h) _help; return 0 ;;
-      *) log_error "Unknown argument: $1"; return 1 ;;
+      --input)
+        shift
+        if [[ $# -eq 0 || "$1" == "--"* ]]; then
+          log_error "--input requires at least one path"; return 1
+        fi
+        while [[ $# -gt 0 && "$1" != "--"* ]]; do
+          input+=("$1")
+          shift
+        done
+        ;;
+      --output)
+        if [[ $# -lt 2 || "$2" == "--"* ]]; then
+          log_error "--output requires a filename"; return 1
+        fi
+        output="$2"
+        shift 2
+        ;;
+      --delete)
+        delete=true
+        shift
+        ;;
+      --help|-h)
+        _help
+        return 0
+        ;;
+      *)
+        _help
+        log_error "Unknown argument: $1"
+        return 1
+        ;;
     esac
   done
 
   [[ ${#input[@]} -eq 0 ]] && log_error "No input specified" && return 1
 
+  _ensure_gpg_loopback_enabled
+  local -r gpg_command='gpg --pinentry-mode loopback --symmetric --cipher-algo AES256 -o'
   if [[ -n "$output" ]]; then
     [[ "$output" != *.tar.gz.gpg ]] && output="${output%.tar.gz.gpg}.tar.gz.gpg"
-    tar -czf - "${input[@]}" | gpg --symmetric --cipher-algo AES256 -o "$output"
+    tar -czf - "${input[@]}" | $gpg_command "$output"
   else
     for item in "${input[@]}"; do
       local name="$(basename "$item")"
       local archive="${name}.tar.gz"
       [[ -f "$item" ]] && archive="${name%.*}.tar.gz"
-      tar -czf - "$item" | gpg --symmetric --cipher-algo AES256 -o "${archive}.gpg"
+      tar -czf - "$item" | $gpg_command "${archive}.gpg"
     done
   fi
 
