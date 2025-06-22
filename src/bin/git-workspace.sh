@@ -36,12 +36,12 @@ _sync_repository() {
     git fetch --all || _error "Failed to fetch in $path"
 
     local current_branch
-    current_branch=$(git symbolic-ref --short HEAD) || _error "Failed to get current branch in $path"
+    current_branch=$(git symbolic-ref --short HEAD) || git checkout "$namespace" || git checkout -b "$namespace" || _error "Failed to get current branch or checkout branch $namespace in $path"
 
     if [[ "$current_branch" != "$namespace" ]]; then
         git diff --quiet || _error "Unstaged changes in $path"
         git diff --cached --quiet || _error "Uncommitted staged changes in $path"
-        git switch "$namespace" || _error "Failed to switch to branch $namespace in $path"
+        git checkout "$namespace" || _error "Failed to checkout branch $namespace in $path"
     fi
 
     git add -A
@@ -62,7 +62,6 @@ _sync_submodules_recursive() {
     cd "$repo_path" || _error "Cannot cd into $repo_path"
 
     if [[ -f .gitmodules ]]; then
-        git submodule update --init --recursive || _error "Failed to update submodules in $repo_path"
         git config -f .gitmodules --get-regexp path | while read -r _ path; do
             local sub_path="$repo_path/$path"
             _sync_submodules_recursive "$workspace_root" "$namespace" "$sub_path"
