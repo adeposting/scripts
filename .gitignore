@@ -1,0 +1,77 @@
+# === OS Files ===
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+._*
+
+# === Mac Finder/Quarantine ===
+*.Spotlight-V100
+*.Trashes
+*.fseventsd
+*.VolumeIcon.icns
+*.com.apple.timemachine.donotpresent
+*.com.apple.quarantine
+
+# === System-Specific Files ===
+*.swp
+*.swo
+*.bak
+*.tmp
+*.temp
+
+# === Logs ===
+*.log
+*.log.*
+
+# === Python Specific ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg
+*.egg-info/
+dist/
+build/
+*.manifest
+*.spec
+
+# === Virtual Environments ===
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# === Project-Specific Binaries and Output ===
+/dist/
+/*.out
+*.exe
+*.o
+*.so
+
+# === Test Output ===
+.coverage
+htmlcov/
+*.cover
+*.py,cover
+.cache/
+.tox/
+.nox/
+pytest_cache/
+test-output/
+
+# === Dev Tools ===
+.idea/
+.vscode/
+*.code-workspace
+*.sublime-workspace
+*.sublime-project
+*.komod
