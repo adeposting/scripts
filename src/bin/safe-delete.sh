@@ -32,15 +32,18 @@ _help() {
 
 
 safe_delete() {
-  super_install srm || super_install shred
+  super_install shred
 
   for target in "$@"; do
-    if command -v srm &>/dev/null; then
-      log_info "Securely deleting $target using srm..."
-      srm -fzv "$target"
-    elif command -v shred &>/dev/null; then
+    if command -v shred &>/dev/null; then
       log_info "Securely shredding $target using shred..."
-      shred -uz "$target"
+      if [ -d "$target" ]
+      then
+        find "$target" -type f -exec shred -uz {} \;
+        find "$target" -depth -type d -exec rmdir {} \;
+      else
+        shred -uz "$target"
+      fi
     else
       log_info "Fallback, deleting $target with rm -rf"
       rm -rf "$target"
@@ -51,5 +54,5 @@ safe_delete() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   safe_delete "$@"
 else
-  export -f delete
+  export -f safe_delete
 fi
