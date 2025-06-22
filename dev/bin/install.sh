@@ -1,5 +1,7 @@
 #!/bin/bash
+
 set -oue pipefail
+
 source "./src/bin/debug.sh"
 source "./dev/bin/test.sh"
 source "./dev/bin/clean.sh"

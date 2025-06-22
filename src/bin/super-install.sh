@@ -1,11 +1,13 @@
 #!/bin/bash
+
 set -oue pipefail
 
 CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+[[ -e "$CWD/include" ]] && source "$CWD/include" || source "$CWD/include.sh"
 
-source "$CWD/debug.sh"
-source "$CWD/log.sh"
-source "$CWD/ostype.sh"
+include debug
+include log
+include ostype
 
 _help() {
     echo

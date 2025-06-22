@@ -1,5 +1,7 @@
 #!/bin/bash
+
 set -oue pipefail
+
 source "./src/bin/debug.sh"
 
 dev_env() {

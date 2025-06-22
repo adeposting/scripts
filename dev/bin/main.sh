@@ -1,4 +1,5 @@
 #!/bin/bash
+
 set -oue pipefail
 
 source "./src/bin/log.sh"

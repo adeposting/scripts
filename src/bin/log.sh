@@ -3,9 +3,10 @@
 set -oue pipefail
 
 CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+[[ -e "$CWD/include" ]] && source "$CWD/include" || source "$CWD/include.sh"
 
-source "$CWD/debug.sh"
-source "$CWD/color.sh"
+include debug
+include color
 
 _help() {
     echo
