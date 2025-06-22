@@ -5,7 +5,7 @@ CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source "$CWD/debug.sh"
 source "$CWD/log.sh"
-source "$CWD/package-install.sh"
+source "$CWD/super-install.sh"
 
 _help() {
     echo
@@ -30,7 +30,7 @@ _help() {
 
 
 safe_delete() {
-  package_install srm || package_install shred
+  super_install srm || super_install shred
 
   for target in "$@"; do
     if command -v srm &>/dev/null; then

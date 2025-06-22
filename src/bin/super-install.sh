@@ -9,9 +9,9 @@ source "$CWD/ostype.sh"
 
 _help() {
     echo
-    echo "package-install.sh"
+    echo "super-install.sh"
     echo
-    echo "  Usage: package_install <command>..."
+    echo "  Usage: super_install <command>..."
     echo
     echo "Behavior:"
     echo "  Installs each command if not found on the system"
@@ -26,16 +26,16 @@ _help() {
     echo "    - Gentoo: emerge"
     echo
     echo "Integration:"
-    echo "  You can source this script to reuse the package_install function:"
-    echo "    source /path/to/package-install.sh"
+    echo "  You can source this script to reuse the super_install function:"
+    echo "    source /path/to/super-install.sh"
     echo
     echo "  This will make the following function available:"
-    echo "    package_install  → install missing commands using system package manager"
+    echo "    super_install  → install missing commands using system package manager"
     echo
 }
 
 
-package_install() {
+super_install() {
   local os
   os="$(ostype)"
 
@@ -70,7 +70,7 @@ package_install() {
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  package_install "$@"
+  super_install "$@"
 else
-  export -f package_install
+  export -f super_install
 fi
