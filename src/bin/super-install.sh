@@ -43,7 +43,13 @@ super_install() {
 
   if [[ "$os" == "darwin" ]]; then
     if command -v brew >/dev/null; then
-      for pkg in "$@"; do brew install "$pkg" || brew install --cask "$pkg"; done
+      for pkg in "$@"
+      do
+        if ! command -v $pkg >/dev/null
+        then
+          brew install "$pkg" || brew install --cask "$pkg" 
+        fi
+      done
     else
       log_error "Homebrew not installed on macOS"
       return 1
