@@ -111,7 +111,7 @@ local level="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
     label="$(echo "$level" | tr '[:lower:]' '[:upper:]')"
     line="${color}[${label}]${reset} [$now] $*"
 
-    echo -e "$line"
+    printf "%b\n" "$line"
     [[ -n "${LOG_FILE:-}" ]] && echo "[${label}] [$now] $*" >> "$LOG_FILE"
     [[ "$level" == "error" ]] && exit 1
 
