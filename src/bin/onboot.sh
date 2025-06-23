@@ -6,6 +6,7 @@ CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 include debug
 include log
 include ostype
+include iterm
 
 _help() {
   echo
@@ -23,7 +24,8 @@ _help() {
   echo
   echo "macOS tasks (Darwin):"
   echo "  - Unloads known problematic LaunchAgents (e.g. Canon EWCService)"
-  echo "  - Starts selected startup applications (e.g. Amethyst)"
+  echo "  - Starts selected startup GUI applications (e.g. Amethyst)"
+  echo "  - Starts selected startup terminal applications (e.g. nvim)"
   echo
   echo "Linux tasks:"
   echo "  - Currently a stub (logs execution only)"
@@ -48,15 +50,25 @@ onboot_darwin() {
     fi
     log_info "Unloaded all plist files with launchctl"
 
-    log_info "Launching startup applications..."
-    applications=""
-    applications+="Amethyst"
-    for application in $applications
+    log_info "Launching startup GUI applications..."
+    local gui_apps=("Amethyst")
+    local gui_app
+    for gui_app in "${gui_apps[@]}"
     do
-        log_info "Launching application '$application'"
-        open -a "$application"
+        log_info "Launching GUI application '$gui_app'"
+        open -a "$gui_app"
     done
-    log_info "Launched all startup applications"
+    log_info "Launched all startup GUI applications"
+
+    log_info "Launching startup terminal applications..."
+    local term_apps=("nvim .")
+    local term_app
+    for term_app in "${term_apps[@]}"
+    do
+        log_info "Launching terminal application '$term_app'"
+        iterm "$term_app"
+    done
+    log_info "Launched all startup terminal applications"
 
     log_info "Successfully completed onboot tasks for Darwin"
 }
