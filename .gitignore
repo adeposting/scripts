@@ -1,3 +1,6 @@
+# == Project Specific
+dist/
+
 # === OS Files ===
 .DS_Store
 .AppleDouble
