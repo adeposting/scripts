@@ -39,26 +39,26 @@ _help() {
 get_color() {
     local color="${1:-}"
     case "$color" in
-        black)         echo -e '\033[0;30m' ;;
-        red)           echo -e '\033[0;31m' ;;
-        green)         echo -e '\033[0;32m' ;;
-        yellow)        echo -e '\033[0;33m' ;;
-        blue)          echo -e '\033[0;34m' ;;
-        magenta|purple) echo -e '\033[0;35m' ;;
-        cyan)          echo -e '\033[0;36m' ;;
-        white)         echo -e '\033[0;37m' ;;
+        black)         printf '\033[0;30m' ;;
+        red)           printf '\033[0;31m' ;;
+        green)         printf '\033[0;32m' ;;
+        yellow)        printf '\033[0;33m' ;;
+        blue)          printf '\033[0;34m' ;;
+        magenta|purple) printf '\033[0;35m' ;;
+        cyan)          printf '\033[0;36m' ;;
+        white)         printf '\033[0;37m' ;;
 
-        bright-black|gray|grey)   echo -e '\033[1;30m' ;;
-        bright-red)               echo -e '\033[1;31m' ;;
-        bright-green)             echo -e '\033[1;32m' ;;
-        bright-yellow)            echo -e '\033[1;33m' ;;
-        bright-blue)              echo -e '\033[1;34m' ;;
-        bright-magenta|bright-purple) echo -e '\033[1;35m' ;;
-        bright-cyan)              echo -e '\033[1;36m' ;;
-        bright-white)             echo -e '\033[1;37m' ;;
+        bright-black|gray|grey)   printf '\033[1;30m' ;;
+        bright-red)               printf '\033[1;31m' ;;
+        bright-green)             printf '\033[1;32m' ;;
+        bright-yellow)            printf '\033[1;33m' ;;
+        bright-blue)              printf '\033[1;34m' ;;
+        bright-magenta|bright-purple) printf '\033[1;35m' ;;
+        bright-cyan)              printf '\033[1;36m' ;;
+        bright-white)             printf '\033[1;37m' ;;
 
-        reset|default)            echo -e '\033[0m' ;;
-        *)                        echo -e '' ;;  # empty on unknown
+        reset|default)            printf '\033[0m' ;;
+        *)                        printf '' ;;
     esac
 }
 
