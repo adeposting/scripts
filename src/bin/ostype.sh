@@ -29,20 +29,25 @@ _help() {
 
 ostype() {
   local actual=""
+  local id=""
+
   if [[ "$(uname)" == "Darwin" ]]; then
-    actual="darwin"
+    actual="Darwin"
   elif [[ -f /etc/os-release ]]; then
     . /etc/os-release
-    actual="${ID,,}"
+    actual="${ID}"
   elif command -v lsb_release >/dev/null; then
-    actual="$(lsb_release -si | tr '[:upper:]' '[:lower:]')"
+    actual="$(lsb_release -si)"
   else
     log_error "Unable to determine OS type"
     return 1
   fi
 
   if [[ $# -gt 0 ]]; then
-    [[ "$1" == "$actual" ]] && return 0 || return 1
+    # Compare lowercase versions only, for robustness
+    local want="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+    local have="$(echo "$actual" | tr '[:upper:]' '[:lower:]')"
+    [[ "$have" == "$want" ]] && return 0 || return 1
   else
     echo "$actual"
   fi
