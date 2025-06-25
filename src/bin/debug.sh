@@ -12,7 +12,7 @@ _help() {
     echo "  enable        → Enable debugging (DEBUG=1, -x)"
     echo "  disable       → Disable debugging (NDEBUG=1, +x)"
     echo "  restore       → Restore previous debug mode from stack"
-    echo "  status        → Show current debug status"
+    echo "  is_enabled    → Exit with error if not enabled"
     echo "  help          → Show this help message"
     echo
     echo "Integration:"
@@ -23,7 +23,7 @@ _help() {
     echo "    enable_debug_mode"
     echo "    disable_debug_mode"
     echo "    restore_debug_mode"
-    echo "    debug_status"
+    echo "    is_debug_enabled"
     echo
 }
 
@@ -33,6 +33,11 @@ __DEBUG_STACK=()
 # Helper: is shell tracing on?
 __is_tracing_enabled() {
     [[ $- == *x* ]]
+}
+
+# Check if debugging is currently enabled
+is_debug_enabled() {
+    __is_tracing_enabled
 }
 
 # Push current state (DEBUG/NDEBUG + -x status)
@@ -49,7 +54,6 @@ restore_debug_mode() {
     local saved="${__DEBUG_STACK[-1]:-}"
     unset '__DEBUG_STACK[-1]'
 
-    # Reset all to clean state first
     unset DEBUG NDEBUG
     set +x
 
@@ -76,14 +80,6 @@ disable_debug_mode() {
     set +x
 }
 
-debug_status() {
-    if __is_tracing_enabled; then
-        echo "DEBUG is enabled"
-    else
-        echo "DEBUG is disabled"
-    fi
-}
-
 _main() {
     local cmd="${1:-}"
     shift || true
@@ -91,7 +87,7 @@ _main() {
         enable)  enable_debug_mode ;;
         disable) disable_debug_mode ;;
         restore) restore_debug_mode ;;
-        status)  debug_status ;;
+        is_enabled) return is_debug_enabled ;;
         help|--help|-h) _help ;;
         *) _help; return 1 ;;
     esac
@@ -104,5 +100,5 @@ else
     export -f enable_debug_mode
     export -f disable_debug_mode
     export -f restore_debug_mode
-    export -f debug_status
+    export -f is_debug_enabled
 fi
