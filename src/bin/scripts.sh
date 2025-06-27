@@ -120,9 +120,10 @@ scripts_bootstrap() {
 }
 
 scripts_env() {
-    # Bootstrap first if not already done
+    # Set SCRIPTS_REPO_ROOT_DIR if not already set
     if [[ -z "${SCRIPTS_REPO_ROOT_DIR:-}" ]]; then
-        scripts_bootstrap || return 1
+        export SCRIPTS_REPO_ROOT_DIR="$(pwd)"
+        echo "Set SCRIPTS_REPO_ROOT_DIR to: $SCRIPTS_REPO_ROOT_DIR"
     fi
 
     # Add scripts bin to PATH (in case bootstrap wasn't run)
