@@ -10,27 +10,11 @@ VALID_TARGETS := test-linux test-darwin test-all build-linux build-darwin clean
 .PHONY: $(VALID_TARGETS)
 
 # Docker test targets
-test-linux: build-linux
-	@echo "Running tests in Ubuntu Linux Docker container..."
-	@mkdir -p $(SCRIPTS_ROOT)/.docker/linux
-	@rsync -a --exclude='.docker' $(SCRIPTS_ROOT)/ $(SCRIPTS_ROOT)/.docker/linux/
-	@docker run --rm \
-		-v "$(shell $(PATH_UTIL) absolute $(SCRIPTS_ROOT)/.docker/linux):/home/docker/scripts" \
-		-v "$(shell $(PATH_UTIL) absolute $(PWD)/run-tests.sh):/home/docker/run-tests.sh" \
-		scripts-test-linux:latest \
-		bash /home/docker/run-tests.sh
-	@echo "Linux tests completed. Logs saved to $(SCRIPTS_ROOT)/.docker/linux/"
+test-linux:
+	docker compose run --rm test-linux
 
-test-darwin: build-darwin
-	@echo "Running tests in macOS-like Docker container..."
-	@mkdir -p $(SCRIPTS_ROOT)/.docker/darwin
-	@rsync -a --exclude='.docker' $(SCRIPTS_ROOT)/ $(SCRIPTS_ROOT)/.docker/darwin/
-	@docker run --rm \
-		-v "$(shell $(PATH_UTIL) absolute $(SCRIPTS_ROOT)/.docker/darwin):/home/docker/scripts" \
-		-v "$(shell $(PATH_UTIL) absolute $(PWD)/run-tests.sh):/home/docker/run-tests.sh" \
-		scripts-test-darwin:latest \
-		bash /home/docker/run-tests.sh
-	@echo "Darwin tests completed. Logs saved to $(SCRIPTS_ROOT)/.docker/darwin/"
+test-darwin:
+	docker compose run --rm test-darwin
 
 test-all: test-linux test-darwin
 	@echo "All Docker tests completed!"

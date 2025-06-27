@@ -30,7 +30,7 @@ use `./src/scripts.sh --help` for help.
 
 or see `scripts_help` function.
 
-### Test
+### Testing
 
 test with `make test`.
 
