@@ -1,40 +1,25 @@
 SHELL := /usr/bin/env bash
 
-APP_DEV_BIN_DIR := ./dev/bin
-APP_DEV_MAIN := $(APP_DEV_BIN_DIR)/main.sh
+SCRIPTS_SH := ./src/bin/scripts.sh
 
-# Explicit list of valid targets
-VALID_TARGETS := help build clean copy install link test uninstall
+VALID_TARGETS := all help test install uninstall build
 
-.PHONY: $(VALID_TARGETS) _bootstrap
+.PHONY: $(VALID_TARGETS)
 
-# Default target
-help: _bootstrap
-	$(APP_DEV_MAIN) help
+all: build install
 
-# Explicit targets
-build: _bootstrap
-	$(APP_DEV_MAIN) build
+help:
+	cat ./README.md
 
-clean: _bootstrap
-	$(APP_DEV_MAIN) clean
+build:
+	chmod +x src/bin/*.sh
+	DEBUG=1 LOG_FILE=./make.log $(SCRIPTS_SH) build
 
-copy: _bootstrap
-	$(APP_DEV_MAIN) copy
+test: build
+	cd dev/docker && make test-all
 
-install: _bootstrap
-	$(APP_DEV_MAIN) install
+install: build
+	DEBUG=1 LOG_FILE=./make.log $(SCRIPTS_SH) install
 
-link: _bootstrap
-	$(APP_DEV_MAIN) link
-
-test: _bootstrap
-	$(APP_DEV_MAIN) test
-
-uninstall: _bootstrap
-	$(APP_DEV_MAIN) uninstall
-
-# Setup
-_bootstrap:
-	which shellcheck || brew install shellcheck
-	chmod +x {dev,src,tests}/bin/*.sh
+uninstall:
+	DEBUG=1 LOG_FILE=./make.log $(SCRIPTS_SH) uninstall
