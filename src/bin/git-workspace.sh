@@ -2,12 +2,8 @@
 
 set -oue pipefail
 
-CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-[[ -e "$CWD/include" ]] && source "$CWD/include" || source "$CWD/include.sh"
-
-include debug
-
-_help() {
+git_workspace_help() {
+    color set bright-white
     echo
     echo "git-workspace.sh"
     echo
@@ -19,16 +15,17 @@ _help() {
     echo
     echo "Environment:"
     echo "  GIT_WORKSPACE_HOME can be used instead of passing the workspace path"
+    color reset
 }
 
-trap '_help; exit 1' ERR
+trap 'git_workspace_help; exit 1' ERR
 
 _error() {
     echo "Error: $*" >&2
     exit 1
 }
 
-_sync_repository() {
+git_workspace_sync_repository() {
     local -r namespace="${1:?}"
     local -r path="${2:?}"
     cd "$path" || _error "Could not cd into $path"
@@ -54,7 +51,7 @@ _sync_repository() {
     git push --set-upstream origin "$namespace" || _error "Failed to push on branch $namespace at $path"
 }
 
-_sync_submodules_recursive() {
+git_workspace_sync_submodules_recursive() {
     local -r workspace_root="${1:?}"
     local -r namespace="${2:?}"
     local -r repo_path="${3:?}"
@@ -64,55 +61,55 @@ _sync_submodules_recursive() {
     if [[ -f .gitmodules ]]; then
         git config -f .gitmodules --get-regexp path | while read -r _ path; do
             local sub_path="$repo_path/$path"
-            _sync_submodules_recursive "$workspace_root" "$namespace" "$sub_path"
+            git_workspace_sync_submodules_recursive "$workspace_root" "$namespace" "$sub_path"
         done
     fi
 
-    _sync_repository "$namespace" "$repo_path"
+    git_workspace_sync_repository "$namespace" "$repo_path"
 }
 
-_sync_superproject() {
+git_workspace_sync_superproject() {
     local -r workspace="${1:?}"
     local -r namespace="${2:?}"
     local -r superproject="${3:?}"
 
     local spath="$workspace/$namespace/$superproject"
-    _sync_submodules_recursive "$workspace" "$namespace" "$spath"
+    git_workspace_sync_submodules_recursive "$workspace" "$namespace" "$spath"
 }
 
-_sync_namespace() {
+git_workspace_sync_namespace() {
     local -r workspace="${1:?}"
     local -r namespace="${2:?}"
 
     for superproject in "$workspace/$namespace"/*; do
         [[ -d "$superproject" && "$(basename "$superproject")" != .* ]] || continue
-        _sync_superproject "$workspace" "$namespace" "$(basename "$superproject")"
+        git_workspace_sync_superproject "$workspace" "$namespace" "$(basename "$superproject")"
     done
 }
 
-_sync_workspace() {
+git_workspace_sync_workspace() {
     local -r workspace="${1:?}"
 
     for namespace in "$workspace"/*; do
         [[ -d "$namespace" && "$(basename "$namespace")" != .* ]] || continue
-        _sync_namespace "$workspace" "$(basename "$namespace")"
+        git_workspace_sync_namespace "$workspace" "$(basename "$namespace")"
     done
 }
 
-_sync() {
+git_workspace_sync() {
     local workspace="${1:-${GIT_WORKSPACE_HOME:-}}"
     [[ -n "$workspace" ]] || _error "Workspace path not provided and GIT_WORKSPACE_HOME not set"
-    _sync_workspace "$workspace"
+    git_workspace_sync_workspace "$workspace"
 }
 
-main() {
+git_workspace() {
     local workspace=""
-    local do_sync=false
+    local dogit_workspace_sync=false
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -s|--sync)
-                do_sync=true
+                dogit_workspace_sync=true
                 shift
                 if [[ $# -gt 0 && ! "$1" =~ ^- ]]; then
                     workspace="$1"
@@ -120,7 +117,7 @@ main() {
                 fi
                 ;;
             -h|--help)
-                _help
+                git_workspace_help
                 exit 0
                 ;;
             *)
@@ -129,12 +126,12 @@ main() {
         esac
     done
 
-    if "$do_sync"; then
-        _sync "$workspace"
+    if "$dogit_workspace_sync"; then
+        git_workspace_sync "$workspace"
     else
-        _help
+        git_workspace_help
         exit 1
     fi
 }
 
-main "$@"
+git_workspace "$@"

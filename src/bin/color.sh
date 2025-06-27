@@ -2,37 +2,19 @@
 
 set -oue pipefail
 
-CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-[[ -e "$CWD/include" ]] && source "$CWD/include" || source "$CWD/include.sh"
-
-include debug
-
-_help() {
-    echo
+color_help() {
     echo
     echo "color.sh"
-    echo
     echo "  Usage: $0 <command> [args...]"
     echo
     echo "Commands:"
     echo "  get <color>            → print ANSI escape sequence for the named color"
     echo "  set <color>            → set terminal text color to the named color"
-    echo "  -color                 → reset terminal color to default"
+    echo "  reset                  → reset terminal color to default"
     echo "  list                   → list all supported color names"
     echo "  echo <color> <msg>     → echo a message with the given color"
     echo "  cat <color> <file>     → cat a file with colored output"
     echo "  help, --help, -h       → show this help text"
-    echo
-    echo "Integration:"
-    echo "  This script can be sourced in another Bash script to use its functions:"
-    echo "    source /path/to/colors.sh"
-    echo
-    echo "  The following functions will be available:"
-    echo "    get_color     → get ANSI code for color name"
-    echo "    set_color     → change current terminal color"
-    echo "    reset_color   → reset color to default"
-    echo "    color_echo    → print a message in color"
-    echo "    color_cat     → print a file in color"
     echo
 }
 
@@ -113,23 +95,19 @@ color_cat() {
     reset_color
 }
 
-_main() {
+color() {
     local cmd="${1:-}"
     shift || true
     case "$cmd" in
         get)         get_color "$@" ;;
         set)         set_color "$@" ;;
-        reset) reset_color ;;
+        reset)       reset_color ;;
         list)        list_colors ;;
         echo)        color_echo "$@" ;;
         cat)         color_cat "$@" ;;
-        help|--help|-h) _help ;;
-        *)           _help; return 1 ;;
+        help|--help|-h) color_help ;;
+        *)           color_help; return 1 ;;
     esac
 }
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    _main "$@"
-else
-    export -f get_color set_color reset_color color_echo color_cat
-fi
+color "$@"

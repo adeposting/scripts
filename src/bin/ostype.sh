@@ -2,32 +2,21 @@
 
 set -oue pipefail
 
-CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-[[ -e "$CWD/include" ]] && source "$CWD/include" || source "$CWD/include.sh"
-
-include debug
-include log
-
-_help() {
+ostype_help() {
+    color set bright-white
     echo
     echo "ostype.sh"
+    echo "  Usage: $0 <command> [args...]"
     echo
-    echo "  Usage: ostype [os-name]"
+    echo "Commands:"
+    echo "  get                     → print the detected OS name"
+    echo "  is <os-name>            → return success if OS matches, error otherwise"
+    echo "  help, --help, -h        → show this help text"
     echo
-    echo "Behavior:"
-    echo "  Prints the detected OS name (e.g., darwin, arch, debian, ubuntu, void, etc.)"
-    echo "  If an argument is given, returns success if it matches the detected OS, otherwise returns error"
-    echo
-    echo "Integration:"
-    echo "  You can source this script to reuse the ostype function:"
-    echo "    source /path/to/ostype.sh"
-    echo
-    echo "  This will make the following function available:"
-    echo "    ostype  → detect or compare OS type"
-    echo
+    color reset
 }
 
-ostype() {
+get_ostype() {
   local actual=""
   local id=""
 
@@ -39,22 +28,35 @@ ostype() {
   elif command -v lsb_release >/dev/null; then
     actual="$(lsb_release -si)"
   else
-    log_error "Unable to determine OS type"
+    shlog error "Unable to determine OS type"
     return 1
   fi
 
-  if [[ $# -gt 0 ]]; then
-    # Compare lowercase versions only, for robustness
-    local want="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
-    local have="$(echo "$actual" | tr '[:upper:]' '[:lower:]')"
-    [[ "$have" == "$want" ]] && return 0 || return 1
-  else
-    echo "$actual"
-  fi
+  echo "$actual"
 }
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  ostype "$@"
-else
-  export -f ostype
-fi
+is_ostype() {
+  local want="${1:-}"
+  if [[ -z "$want" ]]; then
+    echo "OS name required for comparison" >&2
+    return 1
+  fi
+  local actual
+  actual="$(get_ostype)" || return 1
+  local want_lower="$(echo "$want" | tr '[:upper:]' '[:lower:]')"
+  local have_lower="$(echo "$actual" | tr '[:upper:]' '[:lower:]')"
+  [[ "$have_lower" == "$want_lower" ]] && return 0 || return 1
+}
+
+ostype() {
+    local cmd="${1:-}"
+    shift || true
+    case "$cmd" in
+        get)         get_ostype ;;
+        is)          is_ostype "$@" ;;
+        help|--help|-h) ostype_help ;;
+        *)           ostype_help; return 1 ;;
+    esac
+}
+
+ostype "$@"
