@@ -1,109 +1,160 @@
 #!/bin/bash
 
+# Cross-shell compatible error handling
 set -oue pipefail
 
-CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-[[ -e "$CWD/include" ]] && source "$CWD/include" || source "$CWD/include.sh"
-
-include debug
-include log
-include safe-delete
-
-_help() {
+decrypt_help() {
+    color set bright-white
     echo
-    echo "decrypt.sh"
+    echo "decrypt.sh - File decryption utility"
     echo
-    echo "  Usage: decrypt --input <archive>... [--output <directory>] [--delete]"
+    echo "  Usage: $0 --input <file> --output <filename> [OPTIONS]"
+    echo
+    echo "Description:"
+    echo "  Decrypts GPG-encrypted files and extracts archives."
     echo
     echo "Options:"
-    echo "  --input <file>...    → one or more .tar.gz.gpg archives to decrypt"
-    echo "  --output <directory> → directory to extract files to (defaults to current directory)"
-    echo "  --delete             → securely delete encrypted archives after decryption"
+    echo "  --input <file>          input encrypted file to decrypt"
+    echo "  --output <filename>     output filename for decrypted archive"
+    echo "  --extract               extract the archive after decryption"
+    echo "  --recipient <email>     GPG recipient email (optional)"
     echo
-    echo "Behavior:"
-    echo "  - All input archives are checked for existence before processing"
-    echo "  - Extracted contents are placed in the specified or current directory"
-    echo "  - If --delete is specified, original archives are securely deleted"
+    _shlog_print_common_help
     echo
-    echo "Integration:"
-    echo "  You can source this script to reuse the decrypt function:"
-    echo "    source /path/to/decrypt.sh"
+    echo "Examples:"
+    echo "  $0 --input encrypted.tar.gz.gpg --output decrypted.tar.gz"
+    echo "  $0 --input backup.tar.gz.gpg --output backup.tar.gz --extract"
+    echo "  $0 --input file.tar.gz.gpg --output file.tar.gz --recipient user@example.com"
     echo
-    echo "  This will make the following function available:"
-    echo "    decrypt  → decrypt encrypted archives"
-    echo
-}
-
-_ensure_gpg_loopback_enabled() {
-  local conf="$HOME/.gnupg/gpg-agent.conf"
-  local opt="allow-loopback-pinentry"
-  mkdir -p "$(dirname "$conf")"
-  if ! grep -Fxq "$opt" "$conf" 2>/dev/null; then
-    echo "$opt" >> "$conf"
-  fi
-  gpgconf --kill gpg-agent
+    color reset
 }
 
 decrypt() {
-  local input=()
-  local output=""
-  local delete=false
-
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --input)
-        shift
-        if [[ $# -eq 0 || "$1" == "--"* ]]; then
-          log_error "--input requires at least one path"; return 1
+    local input=""
+    local output=""
+    local extract=false
+    local recipient=""
+    local shlog_args=()
+    
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --input)
+                if [[ $# -lt 2 ]]; then
+                    echo "Error: --input requires a file" >&2
+                    return 1
+                fi
+                input="$2"
+                shift 2
+                ;;
+            --output)
+                if [[ $# -lt 2 ]]; then
+                    echo "Error: --output requires a filename" >&2
+                    return 1
+                fi
+                output="$2"
+                shift 2
+                ;;
+            --extract)
+                extract=true
+                shift
+                ;;
+            --recipient)
+                if [[ $# -lt 2 ]]; then
+                    echo "Error: --recipient requires an email" >&2
+                    return 1
+                fi
+                recipient="$2"
+                shift 2
+                ;;
+            --quiet|--verbose|--log-level|--log-file)
+                shlog_args+=("$1")
+                if [[ "$1" == "--log-level" || "$1" == "--log-file" ]]; then
+                    shlog_args+=("$2")
+                    shift 2
+                else
+                    shift
+                fi
+                ;;
+            --help|-h)
+                decrypt_help
+                return 0
+                ;;
+            *)
+                echo "Error: Unknown argument: $1" >&2
+                decrypt_help
+                return 1
+                ;;
+        esac
+    done
+    
+    # Parse logging options
+    if [[ ${#shlog_args[@]} -gt 0 ]]; then
+        local remaining_shlog_args
+        if ! remaining_shlog_args=$(shlog _parse-options "${shlog_args[@]}"); then
+            return 1
         fi
-        while [[ $# -gt 0 && "$1" != "--"* ]]; do
-          input+=("$1")
-          shift
-        done
-        ;;
-      --output)
-        if [[ $# -lt 2 || "$2" == "--"* ]]; then
-          log_error "--output requires a filename"; return 1
-        fi
-        output="$2"
-        shift 2
-        ;;
-      --delete)
-        delete=true
-        shift
-        ;;
-      --help|-h)
-        _help
-        return 0
-        ;;
-      *)
-        _help
-        log_error "Unknown argument: $1"
+    fi
+    
+    # Validate required arguments
+    if [[ -z "$input" ]]; then
+        echo "Error: --input is required" >&2
+        decrypt_help
         return 1
-        ;;
-    esac
-  done
-
-  for f in "${input[@]}"; do
-    [[ ! -f "$f" ]] && log_error "File not found: $f" && return 1
-  done
-
-  mkdir -p "${output:-.}"
-
-  _ensure_gpg_loopback_enabled
-  for f in "${input[@]}"; do
-    local outdir="${output:-.}"
-    gpg --decrypt "$f" | tar -xzf - -C "$outdir"
-  done
-
-  if $delete; then
-    safe_delete "${input[@]}"
-  fi
+    fi
+    
+    if [[ -z "$output" ]]; then
+        echo "Error: --output is required" >&2
+        decrypt_help
+        return 1
+    fi
+    
+    # Check if input file exists
+    if [[ ! -f "$input" ]]; then
+        echo "Error: Input file not found: $input" >&2
+        return 1
+    fi
+    
+    # Setup GPG loopback if available
+    if command -v gpgrc >/dev/null 2>&1; then
+        gpgrc init >/dev/null 2>&1
+    else
+        shlog warn "gpgrc command not available, GPG loopback may not work"
+    fi
+    
+    # Decrypt the file
+    local gpg_args=()
+    if [[ -n "$recipient" ]]; then
+        gpg_args+=("--recipient" "$recipient")
+    fi
+    
+    if gpg --decrypt "${gpg_args[@]}" "$input" > "$output"; then
+        echo "Decryption complete: $output"
+        
+        # Extract if requested
+        if [[ "$extract" == "true" ]]; then
+            if [[ "$output" == *.tar.gz ]]; then
+                echo "Extracting archive..."
+                tar -xzf "$output"
+                
+                # Clean up the archive unless --keep is specified
+                if command -v deleter >/dev/null 2>&1; then
+                    deleter --force "$output"
+                else
+                    shlog warn "deleter command not available, using rm -f"
+                    rm -f "$output"
+                fi
+                
+                echo "Extraction complete"
+            else
+                echo "Warning: Output file doesn't appear to be a tar.gz archive, skipping extraction"
+            fi
+        fi
+    else
+        echo "Decryption failed" >&2
+        rm -f "$output"
+        return 1
+    fi
 }
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  decrypt "$@"
-else
-  export -f decrypt
-fi
+decrypt "$@"
