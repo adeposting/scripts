@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-SCRIPTS_SH := ./src/bin/scripts.sh
+SCRIPTS_SH := DEBUG=1 LOG_FILE=./tests.log ./src/bin/scripts.sh
 
 VALID_TARGETS := all help test install uninstall build
 
@@ -11,15 +11,22 @@ all: build install
 help:
 	cat ./README.md
 
-build:
-	chmod +x src/bin/*.sh
-	DEBUG=1 LOG_FILE=./make.log $(SCRIPTS_SH) build
+build: setup
+	$(SCRIPTS_SH) build
 
 test: build
-	cd dev/docker && make test-all
+	$(SCRIPTS_SH) test
 
 install: build
-	DEBUG=1 LOG_FILE=./make.log $(SCRIPTS_SH) install
+	$(SCRIPTS_SH) install
 
-uninstall:
-	DEBUG=1 LOG_FILE=./make.log $(SCRIPTS_SH) uninstall
+uninstall: build
+	$(SCRIPTS_SH) uninstall
+
+clean:
+	git clean -Xdf
+
+setup:
+	chmod +x src/bin/*.sh
+	chmod +x tests/bin/*.sh
+

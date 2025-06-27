@@ -208,16 +208,10 @@ scripts_test() {
         return 1
     }
 
-    echo "Running tests using shelltest CLI..."
+    echo "Running tests using Docker containers..."
 
-    # Use shelltest CLI to run all tests
-    if shelltest run-all "$SCRIPTS_REPO_ROOT_DIR/tests/bin"; then
-        echo "All tests passed!"
-        return 0
-    else
-        echo "Some tests failed!" >&2
-        return 1
-    fi
+    # Use Docker test runner to run all tests
+    cd dev/docker && make test-all
 }
 
 scripts_build() {
