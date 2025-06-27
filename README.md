@@ -1,46 +1,77 @@
 # scripts
 
-ade's scripts. install with `make install`. have fun.
+ade's scripts.
+
+tldr clone and just `make`.
+
+mac os and linux only.
+
+have fun.
 
 ## Usage
 
-This repository is a collection of useful scripts that provide basic tools and utilities for Mac OS and Linux systems.
+install with `make install`.
 
-To install the scripts, run `make install` from the root of this repository.
+copies `./src` to `~/.local/share/scripts`.
 
-All scripts in `./bin` will be symlinked to `~/.local/bin`, where the file extension of the source file is stripped in the destination file.
+links `~/.local/share/scripts/*.sh` to `~/.local/bin`.
 
-To use the scripts, ensure that `$HOME/.local/bin` is on your `$PATH`, by including `export PATH=$HOME/.local/bin:$PATH` in your `~/.profile`, `~/.bashrc`, `~/.zshrc`, or otherwise for your shell.
+ensure `$HOME/.local/bin` is on `$PATH`.
+
+reinstall with `scripts install`.
+
+uninstall with `scripts uninstall`.
 
 ## Development
 
-The `Makefile` at the root of this repository will call the script at `./dev/bin/main.sh` where the name of any target corresponds to the command executed.
+`Makefile` wraps calls to `./src/scripts.sh`.
 
-For example, running `make install` will run `./dev/bin/main.sh install`, which will subsequently call `./dev/bin/install.sh`.
+use `./src/scripts.sh --help` for help.
 
-The scripts under `./dev/bin` is used for all development and installation related tasks.
+or see `scripts_help` function.
 
-The `./dev/bin/main.sh` has the following commands:
+### Test
 
-* `build`: Calls `./dev/bin/build.sh`, which copies the `./src/bin` directory to `./dist`.
-* `clean`: Calls `./dev/bin/clean.sh`, which deletes the `./dist` directory (if it exists).
-* `copy`: Calls `./dev/bin/copy.sh`, which copies the contents of `./dist` into `~/.local/share/scripts` (if it does not exist).
-* `install`: Calls `./dev/bin/install.sh`, which runs the `test`, `clean`, `build`, `uninstall`, `copy`, and `link` commands in that order.
-* `help`: Calls `./dev/bin/help.sh`, which displays the help text.
-* `link`: Calls `./dev/bin/link.sh`, which symlinks all scripts from `~/.local/share/scripts/bin` to `~/.local/bin` if none of the destination files exist, where the file extension of the source file is stripped in the destination file.
-* `test`: Calls `./dev/bin/test.sh`, which runs all of the tests in the `./tests` directory.
-* `uninstall`: Calls `./dev/bin/uninstall.sh`, which deletes all the symlinks from `~/.local/share/scripts/bin` to `~/.local/bin`, and deletes the `~/.local/share/scripts` directory and all its contents if it exists.
+test with `make test`.
 
-There is additionally `./dev/bin/env.sh`, which provides environment variables for the other scripts under `./dev/bin`.
+runs tests in isolated environments using Docker.
 
-If no command is passed to the script, or the script is called with `help`, `--help` or `-h`, then the `help` command will be executed.
+`make test` calls `test-all` target in `./dev/docker/Makefile`.
+
+to run os specific test for mac/linux:
+
+```bash
+# Navigate to docker directory
+cd dev/docker
+
+# Test in Arch Linux container
+make test-linux
+
+# Test in macOS-like container  
+make test-darwin
+
+# Test in both environments
+make test-all
+```
+
+see `dev/docker/README.md` for details.
 
 ## Contributing
 
-If you find an issue with the scripts, cut an issue at [github.com/adeposting/scripts](https://github.com/adeposting/scripts).
+find an issue? open an issue.
 
-If you want to add a feature, fix a bug, add a unit test, or otherwise, open a pull request.
+got a change? open a PR.
 
-## See Also
+dm me if i don't see it
 
-For more cool things and stuff by ade, check out [adeposting.com](https://adeposting.com).
+info below.
+
+## Contact
+
+`@adeposting` on x.com.
+
+dms open.
+
+## License
+
+MIT
