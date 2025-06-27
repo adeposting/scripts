@@ -35,8 +35,8 @@ for script in ./src/bin/*.sh; do
 done
 
 # Create log files
-LOG_STDOUT="/home/docker/test-output/tests.stdout.log"
-LOG_STDERR="/home/docker/test-output/tests.stderr.log"
+LOG_STDOUT="/home/docker/scripts/tests.stdout.log"
+LOG_STDERR="/home/docker/scripts/tests.stderr.log"
 
 # Clear previous logs
 > "$LOG_STDOUT"
