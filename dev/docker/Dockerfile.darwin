@@ -1,0 +1,59 @@
+FROM ubuntu:22.04
+
+# Set environment variables to mimic macOS
+ENV OSTYPE=darwin
+ENV MACHTYPE=x86_64-apple-darwin
+ENV HOSTTYPE=x86_64
+ENV HOST=x86_64-apple-darwin
+
+# Install essential packages including macOS-like tools
+RUN apt-get update && apt-get install -y \
+    bash \
+    git \
+    coreutils \
+    findutils \
+    grep \
+    sed \
+    gawk \
+    tar \
+    gzip \
+    curl \
+    wget \
+    sudo \
+    build-essential \
+    shellcheck \
+    gnupg \
+    openssh-client \
+    python3 \
+    python3-pip \
+    zsh \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Homebrew-like package manager (using apt as substitute)
+RUN echo "Installing macOS-like tools..."
+
+# Create docker user
+RUN useradd -m -s /bin/bash docker && \
+    echo "docker ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Set up environment
+USER docker
+WORKDIR /home/docker
+
+# Create scripts directory
+RUN mkdir -p /home/docker/scripts
+
+# Set up shell environment to mimic macOS with correct PATH order
+RUN echo 'export PATH="/home/docker/scripts/dist/bin:/home/docker/scripts/local/bin:/home/docker/scripts/src/bin:$PATH"' >> ~/.bashrc && \
+    echo 'export SCRIPTS_REPO_ROOT_DIR="/home/docker/scripts"' >> ~/.bashrc && \
+    echo 'export OSTYPE=darwin' >> ~/.bashrc && \
+    echo 'export MACHTYPE=x86_64-apple-darwin' >> ~/.bashrc && \
+    echo 'export HOSTTYPE=x86_64' >> ~/.bashrc && \
+    echo 'export HOST=x86_64-apple-darwin' >> ~/.bashrc
+
+# Create test output directories
+RUN mkdir -p /home/docker/test-output
+
+# Set default command
+CMD ["/bin/bash"] 
