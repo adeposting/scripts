@@ -1,0 +1,43 @@
+FROM ubuntu:22.04
+
+# Install essential packages
+RUN apt-get update && apt-get install -y \
+    bash \
+    git \
+    coreutils \
+    findutils \
+    grep \
+    sed \
+    gawk \
+    tar \
+    gzip \
+    curl \
+    wget \
+    sudo \
+    build-essential \
+    shellcheck \
+    gnupg \
+    openssh-client \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create docker user
+RUN useradd -m -s /bin/bash docker && \
+    echo "docker ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Set up environment
+USER docker
+WORKDIR /home/docker
+
+# Create scripts directory
+RUN mkdir -p /home/docker/scripts
+
+# Set up shell environment with correct PATH order
+RUN echo 'export PATH="/home/docker/scripts/dist/bin:/home/docker/scripts/local/bin:/home/docker/scripts/src/bin:$PATH"' >> ~/.bashrc && \
+    echo 'export SCRIPTS_REPO_ROOT_DIR="/home/docker/scripts"' >> ~/.bashrc
+
+# Create test output directories
+RUN mkdir -p /home/docker/test-output
+
+# Set default command
+CMD ["/bin/bash"] 
