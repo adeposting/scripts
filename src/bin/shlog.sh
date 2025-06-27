@@ -219,33 +219,51 @@ _should_log() {
     [[ $message_rank -ge $current_rank ]]
 }
 
+# --- Write to log file if LOG_FILE is set ---
+_write_to_log_file() {
+    local message="$1"
+    if [[ -n "${LOG_FILE:-}" ]]; then
+        echo "$message" >> "$LOG_FILE"
+    fi
+}
+
 log_info() {
     if _should_log "info"; then
-        echo "[INFO] $*"
+        local message="[INFO] $*"
+        color echo green "$message"
+        _write_to_log_file "$message"
     fi
 }
 
 log_warn() {
     if _should_log "warn"; then
-        echo "[WARN] $*" >&2
+        local message="[WARN] $*"
+        color echo yellow "$message" >&2
+        _write_to_log_file "$message"
     fi
 }
 
 log_error() {
     if _should_log "error"; then
-        echo "[ERROR] $*" >&2
+        local message="[ERROR] $*"
+        color echo red "$message" >&2
+        _write_to_log_file "$message"
     fi
 }
 
 log_debug() {
     if _should_log "debug"; then
-        echo "[DEBUG] $*"
+        local message="[DEBUG] $*"
+        color echo purple "$message"
+        _write_to_log_file "$message"
     fi
 }
 
 log_note() {
     if _should_log "note"; then
-        echo "[NOTE] $*"
+        local message="[NOTE] $*"
+        color echo cyan "$message"
+        _write_to_log_file "$message"
     fi
 }
 
