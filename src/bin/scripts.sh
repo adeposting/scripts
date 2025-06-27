@@ -211,7 +211,7 @@ scripts_test() {
     echo "Running tests using Docker containers..."
 
     # Use Docker test runner to run all tests
-    cd dev/docker && make test-all
+    cd "$SCRIPTS_REPO_ROOT_DIR/dev/docker" && make test-all
 }
 
 scripts_build() {
