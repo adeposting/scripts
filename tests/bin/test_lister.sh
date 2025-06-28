@@ -33,7 +33,7 @@ shelltest assert_contains "$output" "Unknown option" "lister should error with i
 
 # Test: lister function directly
 shelltest test_case "lister function direct call"
-source "../../src/bin/lister.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(lister --help 2>&1)
@@ -50,17 +50,17 @@ shelltest assert_contains "$output" "--no-hidden" "help should mention no-hidden
 
 # Test: lister function exists when sourced
 shelltest test_case "lister function exists when sourced"
-source "../../src/bin/lister.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "lister" "lister function should exist when sourced"
 
 # Test: lister help function exists
 shelltest test_case "lister help function exists"
-source "../../src/bin/lister.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "lister_help" "lister_help function should exist when sourced"
 
 # Test: lister get files function exists
 shelltest test_case "lister get files function exists"
-source "../../src/bin/lister.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "_lister_get_files" "_lister_get_files function should exist when sourced"
 
 # Test: lister include option validation

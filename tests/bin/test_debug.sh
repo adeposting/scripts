@@ -62,7 +62,7 @@ shelltest assert_contains "$output" "debug.sh" "invalid command should show help
 
 # Test: debug function directly
 shelltest test_case "debug function direct call"
-source "../../src/bin/debug.sh"
+# Command should be available on PATH
 
 # Test enable
 unset DEBUG

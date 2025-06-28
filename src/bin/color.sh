@@ -97,6 +97,14 @@ color_cat() {
 
 color() {
     local cmd="${1:-}"
+    
+    # Handle case where no arguments are provided
+    if [[ -z "$cmd" ]]; then
+        echo "Color utility - use 'list' to see available colors or 'help' for usage"
+        echo "Current terminal supports: $(tput colors 2>/dev/null || echo "unknown") colors"
+        return 0
+    fi
+    
     shift || true
     case "$cmd" in
         get)         get_color "$@" ;;

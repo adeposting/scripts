@@ -104,10 +104,18 @@ scripts_bootstrap() {
     rm -rf ./.venv/bin
     mkdir -p ./.venv/bin
 
-    # Create symlinks from dist/bin to ./.venv/bin
+    # Create symlinks from dist/bin to ./.venv/bin for shell scripts
     for script in ./dist/bin/*.sh; do
         if [[ -f "$script" ]]; then
             script_name=$(basename "$script" .sh)
+            ln -sf "$(pwd)/$script" "./.venv/bin/$script_name"
+        fi
+    done
+
+    # Create symlinks from dist/bin to ./.venv/bin for Python scripts
+    for script in ./dist/bin/*.py; do
+        if [[ -f "$script" ]]; then
+            script_name=$(basename "$script" .py)
             ln -sf "$(pwd)/$script" "./.venv/bin/$script_name"
         fi
     done
@@ -196,6 +204,40 @@ scripts_test() {
         return 1
     }
 
+    # Ensure .docker directory is fresh
+    rm -rf .docker
+    mkdir -p .docker/darwin .docker/linux
+
+    # Copy repository contents (excluding git-ignored files) to both docker directories
+    echo "Copying repository contents to .docker directories..."
+    
+    # Use git ls-files to get all tracked files (excluding ignored ones)
+    if git ls-files >/dev/null 2>&1; then
+        # Copy all tracked files to both directories
+        git ls-files | while read -r file; do
+            if [[ -f "$file" ]]; then
+                # Create directory structure if needed
+                mkdir -p ".docker/darwin/$(dirname "$file")"
+                mkdir -p ".docker/linux/$(dirname "$file")"
+                # Copy file to both directories
+                cp "$file" ".docker/darwin/$file"
+                cp "$file" ".docker/linux/$file"
+            fi
+        done
+        echo "Copied $(git ls-files | wc -l | tr -d ' ') files to .docker directories"
+    else
+        echo "Warning: Not in a git repository, copying all non-ignored files..."
+        # Fallback: copy everything except common ignored patterns
+        rsync -av --exclude='.git' --exclude='.docker' --exclude='dist' --exclude='.venv' \
+              --exclude='*.log' --exclude='__pycache__' --exclude='*.pyc' \
+              --exclude='.DS_Store' --exclude='*.tmp' --exclude='*.swp' \
+              ./ .docker/darwin/
+        rsync -av --exclude='.git' --exclude='.docker' --exclude='dist' --exclude='.venv' \
+              --exclude='*.log' --exclude='__pycache__' --exclude='*.pyc' \
+              --exclude='.DS_Store' --exclude='*.tmp' --exclude='*.swp' \
+              ./ .docker/linux/
+    fi
+
     # Build first to ensure we have the latest distribution
     scripts_build || {
         echo "Error: Build failed, cannot run tests" >&2
@@ -208,10 +250,18 @@ scripts_test() {
         return 1
     }
 
-    echo "Running tests using Docker containers..."
-
-    # Use Docker test runner to run all tests
-    cd "$SCRIPTS_REPO_ROOT_DIR/dev/docker" && make test-all
+    # Check if a specific test was provided
+    local test_arg="${1:-}"
+    
+    if [[ -n "$test_arg" ]]; then
+        echo "Running specific test: $test_arg"
+        # Use Docker test runner to run specific test
+        cd "$SCRIPTS_REPO_ROOT_DIR/dev/docker" && make test-specific TEST="$test_arg"
+    else
+        echo "Running all tests using Docker containers..."
+        # Use Docker test runner to run all tests
+        cd "$SCRIPTS_REPO_ROOT_DIR/dev/docker" && make test-all
+    fi
 }
 
 scripts_build() {
@@ -232,16 +282,24 @@ scripts_build() {
     echo "export SCRIPTS_REPO_ROOT_DIR='$(pwd)'" > ./dist/env/scripts.env
     echo "Created environment file: ./dist/env/scripts.env"
 
-    # Create symlinks in dist/bin for easy access
+    # Create symlinks in dist/bin for easy access (both .sh and .py files)
     for script in ./dist/bin/*.sh; do
         if [[ -f "$script" ]]; then
             script_name=$(basename "$script" .sh)
             ln -sf "$(pwd)/$script" "./dist/bin/$script_name"
         fi
     done
+    
+    for script in ./dist/bin/*.py; do
+        if [[ -f "$script" ]]; then
+            script_name=$(basename "$script" .py)
+            ln -sf "$(pwd)/$script" "./dist/bin/$script_name"
+        fi
+    done
 
     # Make all scripts executable
     chmod +x ./dist/bin/*.sh 2>/dev/null || true
+    chmod +x ./dist/bin/*.py 2>/dev/null || true
     chmod +x ./dist/bin/* 2>/dev/null || true
 
     echo "Build complete. Distribution available in ./dist/"
@@ -284,7 +342,7 @@ scripts_install() {
 
     if command -v linker &>/dev/null; then
         echo "Creating symlinks..."
-        linker --force --rename 's/\.sh$//' --source ~/.local/share/scripts --destination ~/.local
+        linker --force --rename 's/\.[sp][hy]$//' --source ~/.local/share/scripts --destination ~/.local
     else
         echo "Warning: linker not available, skipping symlink creation" >&2
     fi
@@ -332,7 +390,7 @@ scripts() {
         help|--help|-h) scripts_help ;;
         bootstrap) scripts_bootstrap ;;
         init) scripts_bootstrap && scripts_init ;;
-        test) scripts_bootstrap && scripts_test ;;
+        test) scripts_bootstrap && scripts_test "$@" ;;
         build) scripts_build ;;
         install) scripts_bootstrap && scripts_install ;;
         uninstall) scripts_bootstrap && scripts_uninstall ;;

@@ -68,6 +68,10 @@ test_fail() {
     if command -v shlog >/dev/null 2>&1; then
         shlog error "Test failed: $CURRENT_TEST - $message"
     fi
+    
+    # Exit immediately on test failure
+    echo -e "\n${RED}Test suite failed! Stopping execution.${NC}"
+    exit 1
 }
 
 # Skip a test
@@ -176,6 +180,132 @@ assert_file_not_exists() {
     fi
 }
 
+# Additional assertion functions that are used in tests
+assert_empty() {
+    local value="$1"
+    local message="${2:-}"
+    
+    if [[ -z "$value" ]]; then
+        test_pass
+    else
+        test_fail "Value should be empty (got: '$value')${message:+ - $message}"
+    fi
+}
+
+assert_not_empty() {
+    local value="$1"
+    local message="${2:-}"
+    
+    if [[ -n "$value" ]]; then
+        test_pass
+    else
+        test_fail "Value should not be empty${message:+ - $message}"
+    fi
+}
+
+assert_directory_exists() {
+    local directory="$1"
+    local message="${2:-}"
+    
+    if [[ -d "$directory" ]]; then
+        test_pass
+    else
+        test_fail "Directory should exist: '$directory'${message:+ - $message}"
+    fi
+}
+
+assert_directory_not_exists() {
+    local directory="$1"
+    local message="${2:-}"
+    
+    if [[ ! -d "$directory" ]]; then
+        test_pass
+    else
+        test_fail "Directory should not exist: '$directory'${message:+ - $message}"
+    fi
+}
+
+assert_true() {
+    local value="$1"
+    local message="${2:-}"
+    
+    if [[ "$value" == "true" || "$value" == "True" || "$value" == "1" ]]; then
+        test_pass
+    else
+        test_fail "Value should be true: '$value'${message:+ - $message}"
+    fi
+}
+
+assert_false() {
+    local value="$1"
+    local message="${2:-}"
+    
+    if [[ "$value" == "false" || "$value" == "False" || "$value" == "0" ]]; then
+        test_pass
+    else
+        test_fail "Value should be false: '$value'${message:+ - $message}"
+    fi
+}
+
+assert_less_than() {
+    local expected="$1"
+    local actual="$2"
+    local message="${3:-}"
+    
+    if (( actual < expected )); then
+        test_pass
+    else
+        test_fail "Value should be less than '$expected' (got: '$actual')${message:+ - $message}"
+    fi
+}
+
+assert_less_than_or_equal() {
+    local expected="$1"
+    local actual="$2"
+    local message="${3:-}"
+    
+    if (( actual <= expected )); then
+        test_pass
+    else
+        test_fail "Value should be less than or equal to '$expected' (got: '$actual')${message:+ - $message}"
+    fi
+}
+
+assert_greater_than() {
+    local expected="$1"
+    local actual="$2"
+    local message="${3:-}"
+    
+    if (( actual > expected )); then
+        test_pass
+    else
+        test_fail "Value should be greater than '$expected' (got: '$actual')${message:+ - $message}"
+    fi
+}
+
+assert_greater_than_or_equal() {
+    local expected="$1"
+    local actual="$2"
+    local message="${3:-}"
+    
+    if (( actual >= expected )); then
+        test_pass
+    else
+        test_fail "Value should be greater than or equal to '$expected' (got: '$actual')${message:+ - $message}"
+    fi
+}
+
+assert_function_exists() {
+    local function_name="$1"
+    local message="${2:-}"
+    
+    if declare -F "$function_name" >/dev/null 2>&1; then
+        test_pass
+    else
+        test_fail "Function should exist: '$function_name'${message:+ - $message}"
+    fi
+}
+
 # Print test summary
 test_summary() {
     TEST_END_TIME=$(date +%s)
@@ -257,12 +387,44 @@ run_test_script() {
             assert_file_not_exists)
                 assert_file_not_exists "${2:-}" "${3:-}"
                 ;;
+            assert_empty)
+                assert_empty "${2:-}" "${3:-}"
+                ;;
+            assert_not_empty)
+                assert_not_empty "${2:-}" "${3:-}"
+                ;;
+            assert_directory_exists)
+                assert_directory_exists "${2:-}" "${3:-}"
+                ;;
+            assert_directory_not_exists)
+                assert_directory_not_exists "${2:-}" "${3:-}"
+                ;;
+            assert_true)
+                assert_true "${2:-}" "${3:-}"
+                ;;
+            assert_false)
+                assert_false "${2:-}" "${3:-}"
+                ;;
+            assert_less_than)
+                assert_less_than "${2:-}" "${3:-}" "${4:-}"
+                ;;
+            assert_less_than_or_equal)
+                assert_less_than_or_equal "${2:-}" "${3:-}" "${4:-}"
+                ;;
+            assert_greater_than)
+                assert_greater_than "${2:-}" "${3:-}" "${4:-}"
+                ;;
+            assert_greater_than_or_equal)
+                assert_greater_than_or_equal "${2:-}" "${3:-}" "${4:-}"
+                ;;
+            assert_function_exists)
+                assert_function_exists "${2:-}" "${3:-}"
+                ;;
             test_summary)
                 test_summary
                 ;;
             *)
-                echo "Unknown shelltest command: ${1:-}" >&2
-                exit 1
+                test_fail "Unknown shelltest command: ${1:-}"
                 ;;
         esac
     }
@@ -312,6 +474,12 @@ main() {
             echo "  shelltest assert_command_not_exists <cmd> <msg> Assert command does not exist"
             echo "  shelltest assert_file_exists <file> <msg>     Assert file exists"
             echo "  shelltest assert_file_not_exists <file> <msg> Assert file does not exist"
+            echo "  shelltest assert_empty <value> <msg>          Assert value is empty"
+            echo "  shelltest assert_not_empty <value> <msg>      Assert value is not empty"
+            echo "  shelltest assert_directory_exists <dir> <msg> Assert directory exists"
+            echo "  shelltest assert_directory_not_exists <dir> <msg> Assert directory does not exist"
+            echo "  shelltest assert_true <value> <msg>             Assert value is true"
+            echo "  shelltest assert_false <value> <msg>            Assert value is false"
             echo "  shelltest test_summary           Print test summary and exit"
             exit 1
             ;;

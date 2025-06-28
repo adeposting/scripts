@@ -5,15 +5,13 @@
 
 set -e
 
-# Set up environment - ensure ./dist/bin is first in PATH
-export PATH="/home/docker/scripts/dist/bin:/home/docker/scripts/local/bin:/home/docker/scripts/src/bin:$PATH"
+# Set up environment - add src/bin to PATH so scripts.sh is available
 export SCRIPTS_REPO_ROOT_DIR="/home/docker/scripts"
+export PATH="/home/docker/scripts/src/bin:$PATH"
+export PATH="/home/docker/scripts/dist/bin:$PATH"
 
 # Change to scripts directory
 cd /home/docker/scripts
-
-# Create local installation directory
-mkdir -p ./local/bin
 
 # Build first to ensure we have dist/bin
 echo "=== Building scripts distribution ==="
@@ -24,15 +22,14 @@ else
     exit 1
 fi
 
-# Install scripts to local/bin (create symlinks without .sh extension)
-echo "=== Installing scripts to local/bin ==="
-for script in ./src/bin/*.sh; do
-    if [[ -f "$script" ]]; then
-        script_name=$(basename "$script" .sh)
-        ln -sf "$(pwd)/$script" "./local/bin/$script_name"
-        echo "Created symlink: $script_name -> $script"
-    fi
-done
+# Run bootstrap to set up environment and create symlinks
+echo "=== Running bootstrap ==="
+if scripts.sh bootstrap; then
+    echo "Bootstrap completed successfully"
+else
+    echo "Bootstrap failed"
+    exit 1
+fi
 
 # Create log files
 LOG_STDOUT="/home/docker/scripts/tests.stdout.log"
@@ -50,17 +47,6 @@ echo "" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
 
 # Make scripts executable
 chmod +x src/bin/*.sh tests/bin/*.sh 2>&1 | tee -a "$LOG_STDOUT" "$LOG_STDERR"
-
-# Run bootstrap
-echo "=== Running bootstrap ===" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
-if scripts.sh bootstrap 2>&1 | tee -a "$LOG_STDOUT" "$LOG_STDERR"; then
-    echo "Bootstrap completed successfully" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
-else
-    echo "Bootstrap failed" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
-    exit 1
-fi
-
-echo "" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
 
 # Run init
 echo "=== Running init ===" | tee -a "$LOG_STDOUT" "$LOG_STDERR"

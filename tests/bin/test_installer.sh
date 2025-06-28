@@ -38,7 +38,7 @@ shelltest assert_contains "$output" "installer.sh" "invalid command should show 
 
 # Test: installer function directly
 shelltest test_case "installer function direct call"
-source "../../src/bin/installer.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(installer help)

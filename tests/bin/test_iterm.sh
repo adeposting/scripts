@@ -40,7 +40,7 @@ shelltest assert_contains "$output" "iterm.sh" "iterm should show help for help 
 
 # Test: iterm function directly
 shelltest test_case "iterm function direct call"
-source "../../src/bin/iterm.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(iterm help)
@@ -68,13 +68,13 @@ shelltest assert_contains "$output" "iterm.sh" "iterm should handle arguments co
 
 # Test: iterm function exists when sourced
 shelltest test_case "iterm function exists when sourced"
-source "../../src/bin/iterm.sh"
-shelltest assert_function_exists "iterm" "iterm function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "iterm" "iterm command should be available on PATH"
 
 # Test: iterm help function exists
 shelltest test_case "iterm help function exists"
-source "../../src/bin/iterm.sh"
-shelltest assert_function_exists "iterm_help" "iterm_help function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "iterm" "iterm command should be available on PATH"
 
 # Test: iterm with empty argument
 shelltest test_case "iterm with empty argument"

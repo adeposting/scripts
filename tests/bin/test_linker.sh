@@ -33,7 +33,7 @@ shelltest assert_contains "$output" "Unknown option" "linker should error with i
 
 # Test: linker function directly
 shelltest test_case "linker function direct call"
-source "../../src/bin/linker.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(linker --help 2>&1)
@@ -51,12 +51,12 @@ shelltest assert_contains "$output" "--rename" "help should mention rename optio
 
 # Test: linker function exists when sourced
 shelltest test_case "linker function exists when sourced"
-source "../../src/bin/linker.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "linker" "linker function should exist when sourced"
 
 # Test: linker help function exists
 shelltest test_case "linker help function exists"
-source "../../src/bin/linker.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "linker_help" "linker_help function should exist when sourced"
 
 # Test: linker source option validation

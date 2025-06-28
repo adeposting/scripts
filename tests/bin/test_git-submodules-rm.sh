@@ -43,7 +43,7 @@ shelltest assert_contains "$output" "You must provide at least one submodule pat
 
 # Test: git-submodules-rm function directly
 shelltest test_case "git-submodules-rm function direct call"
-source "../../src/bin/git-submodules-rm.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(git-submodules-rm help)
@@ -58,12 +58,12 @@ shelltest assert_contains "$output" "help, --help, -h" "help should mention help
 
 # Test: git-submodules-rm function exists when sourced
 shelltest test_case "git-submodules-rm function exists when sourced"
-source "../../src/bin/git-submodules-rm.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "git_submodules_rm" "git_submodules_rm function should exist when sourced"
 
 # Test: git-submodules-rm help function exists
 shelltest test_case "git-submodules-rm help function exists"
-source "../../src/bin/git-submodules-rm.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "git_submodules_rm_help" "git_submodules_rm_help function should exist when sourced"
 
 # Test: git-submodules-rm argument validation

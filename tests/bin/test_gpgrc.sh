@@ -38,7 +38,7 @@ shelltest assert_contains "$output" "gpgrc.sh" "gpgrc should show help with no a
 
 # Test: gpgrc function directly
 shelltest test_case "gpgrc function direct call"
-source "../../src/bin/gpgrc.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(gpgrc help)
@@ -62,14 +62,14 @@ shelltest assert_contains "$output" "init" "gpgrc should have init command"
 # Test: gpgrc init function exists
 shelltest test_case "gpgrc init function exists"
 # Test that the gpgrc_init function exists when sourced
-source "../../src/bin/gpgrc.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "gpgrc_init" "gpgrc_init function should exist when sourced"
 
 # Test: gpgrc init function behavior (mock test)
 shelltest test_case "gpgrc init function behavior"
 # This would normally test actual GPG configuration
 # For now, we just verify the function can be called
-source "../../src/bin/gpgrc.sh"
+# Command should be available on PATH
 # We can't easily test the actual GPG configuration without affecting the system
 # So we just verify the function exists and can be called
 shelltest assert_function_exists "gpgrc_init" "gpgrc_init function should be callable"

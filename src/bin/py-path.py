@@ -12,6 +12,13 @@ import sys
 from pathlib import Path
 from typing import List, Optional, Union
 
+# Patch: Custom HelpFormatter to use 'Usage:'
+class CapitalUHelpFormatter(argparse.RawDescriptionHelpFormatter):
+    def _format_usage(self, usage, actions, groups, prefix=None):
+        if prefix is None:
+            prefix = 'Usage: '
+        return super()._format_usage(usage, actions, groups, prefix)
+
 
 def resolve_path(path_str: str) -> Path:
     """Resolve a path string to an absolute Path object."""
@@ -260,7 +267,7 @@ def dirname(path_str: str) -> str:
 def main():
     parser = argparse.ArgumentParser(
         description="Path CLI - A command-line wrapper for pathlib.Path",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=CapitalUHelpFormatter,
         epilog="""
 Examples:
   path absolute /path/to/file

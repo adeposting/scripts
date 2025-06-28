@@ -83,7 +83,7 @@ shelltest assert_contains "$output" "pathenv.sh" "invalid command should show he
 
 # Test: pathenv function directly
 shelltest test_case "pathenv function direct call"
-source "../../src/bin/pathenv.sh"
+# Command should be available on PATH
 
 # Test get_path_env function
 output=$(get_path_env)

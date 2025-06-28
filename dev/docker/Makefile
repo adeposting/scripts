@@ -5,7 +5,7 @@ SCRIPTS_ROOT := ../..
 SCRIPTS_SH := $(SCRIPTS_ROOT)/src/bin/scripts.sh
 PATH_UTIL := $(SCRIPTS_ROOT)/dev/bin/path
 
-VALID_TARGETS := test-linux test-darwin test-all build-linux build-darwin clean
+VALID_TARGETS := test-linux test-darwin test-all test-specific build-linux build-darwin clean
 
 .PHONY: $(VALID_TARGETS)
 
@@ -18,6 +18,14 @@ test-darwin:
 
 test-all: test-linux test-darwin
 	@echo "All Docker tests completed!"
+
+test-specific:
+	@if [ -z "$(TEST)" ]; then \
+		echo "Error: TEST variable must be specified. Usage: make test-specific TEST=test_file.sh"; \
+		exit 1; \
+	fi
+	@echo "Running specific test: $(TEST)"
+	docker compose run --rm test-linux bash -c "cd /home/docker/scripts && ./src/bin/shelltest.sh run ./tests/bin/$(TEST)"
 
 build-linux:
 	@echo "Building Ubuntu Linux Docker image..."
@@ -36,8 +44,9 @@ clean:
 test-docker-linux: test-linux
 test-docker-darwin: test-darwin
 test-docker-all: test-all
+test-docker-specific: test-specific
 build-docker-linux: build-linux
 build-docker-darwin: build-darwin
 clean-docker: clean
 
-.PHONY: test-docker-linux test-docker-darwin test-docker-all build-docker-linux build-docker-darwin clean-docker 
+.PHONY: test-docker-linux test-docker-darwin test-docker-all test-docker-specific build-docker-linux build-docker-darwin clean-docker 

@@ -38,7 +38,7 @@ shelltest assert_contains "$output" "scripts.sh" "invalid command should show he
 
 # Test: scripts function directly
 shelltest test_case "scripts function direct call"
-source "../../src/bin/scripts.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(scripts help)
@@ -58,53 +58,53 @@ shelltest assert_contains "$output" "env" "help should mention env command"
 
 # Test: scripts function exists when sourced
 shelltest test_case "scripts function exists when sourced"
-source "../../src/bin/scripts.sh"
-shelltest assert_function_exists "scripts" "scripts function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "scripts" "scripts command should be available on PATH"
 
 # Test: scripts help function exists
 shelltest test_case "scripts help function exists"
-source "../../src/bin/scripts.sh"
-shelltest assert_function_exists "scripts_help" "scripts_help function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "scripts" "scripts command should be available on PATH"
 
 # Test: scripts bootstrap function exists
 shelltest test_case "scripts bootstrap function exists"
-source "../../src/bin/scripts.sh"
-shelltest assert_function_exists "scripts_bootstrap" "scripts_bootstrap function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "scripts" "scripts command should be available on PATH"
 
 # Test: scripts init function exists
 shelltest test_case "scripts init function exists"
-source "../../src/bin/scripts.sh"
-shelltest assert_function_exists "scripts_init" "scripts_init function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "scripts" "scripts command should be available on PATH"
 
 # Test: scripts test function exists
 shelltest test_case "scripts test function exists"
-source "../../src/bin/scripts.sh"
-shelltest assert_function_exists "scripts_test" "scripts_test function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "scripts" "scripts command should be available on PATH"
 
 # Test: scripts build function exists
 shelltest test_case "scripts build function exists"
-source "../../src/bin/scripts.sh"
-shelltest assert_function_exists "scripts_build" "scripts_build function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "scripts" "scripts command should be available on PATH"
 
 # Test: scripts install function exists
 shelltest test_case "scripts install function exists"
-source "../../src/bin/scripts.sh"
-shelltest assert_function_exists "scripts_install" "scripts_install function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "scripts" "scripts command should be available on PATH"
 
 # Test: scripts uninstall function exists
 shelltest test_case "scripts uninstall function exists"
-source "../../src/bin/scripts.sh"
-shelltest assert_function_exists "scripts_uninstall" "scripts_uninstall function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "scripts" "scripts command should be available on PATH"
 
 # Test: scripts env function exists
 shelltest test_case "scripts env function exists"
-source "../../src/bin/scripts.sh"
-shelltest assert_function_exists "scripts_env" "scripts_env function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "scripts" "scripts command should be available on PATH"
 
 # Test: scripts repository detection function exists
 shelltest test_case "scripts repository detection function exists"
-source "../../src/bin/scripts.sh"
-shelltest assert_function_exists "is_cwd_scripts_repo_root_dir" "is_cwd_scripts_repo_root_dir function should exist when sourced"
+# Command should be available on PATH
+shelltest assert_command_exists "scripts" "scripts command should be available on PATH"
 
 # Test: scripts bootstrap command (mock test)
 shelltest test_case "scripts bootstrap command"

@@ -33,7 +33,7 @@ shelltest assert_contains "$output" "Unknown argument" "encrypt should error wit
 
 # Test: encrypt function directly
 shelltest test_case "encrypt function direct call"
-source "../../src/bin/encrypt.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(encrypt --help 2>&1)
@@ -51,12 +51,12 @@ shelltest assert_contains "$output" "--recipient" "help should mention recipient
 
 # Test: encrypt function exists when sourced
 shelltest test_case "encrypt function exists when sourced"
-source "../../src/bin/encrypt.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "encrypt" "encrypt function should exist when sourced"
 
 # Test: encrypt help function exists
 shelltest test_case "encrypt help function exists"
-source "../../src/bin/encrypt.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "encrypt_help" "encrypt_help function should exist when sourced"
 
 # Test: encrypt input option validation

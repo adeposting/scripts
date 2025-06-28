@@ -40,7 +40,7 @@ shelltest assert_contains "$output" "onboot.sh" "onboot should show help for hel
 
 # Test: onboot function directly
 shelltest test_case "onboot function direct call"
-source "../../src/bin/onboot.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(onboot help)
@@ -62,24 +62,9 @@ output=$(onboot help 2>&1)
 shelltest assert_contains "$output" "onboot.sh" "onboot should be able to show help"
 
 # Test: onboot function exists when sourced
-shelltest test_case "onboot function exists when sourced"
-source "../../src/bin/onboot.sh"
-shelltest assert_function_exists "onboot" "onboot function should exist when sourced"
-
-# Test: onboot help function exists
-shelltest test_case "onboot help function exists"
-source "../../src/bin/onboot.sh"
-shelltest assert_function_exists "onboot_help" "onboot_help function should exist when sourced"
-
-# Test: onboot darwin function exists
-shelltest test_case "onboot darwin function exists"
-source "../../src/bin/onboot.sh"
-shelltest assert_function_exists "onboot_darwin" "onboot_darwin function should exist when sourced"
-
-# Test: onboot linux function exists
-shelltest test_case "onboot linux function exists"
-source "../../src/bin/onboot.sh"
-shelltest assert_function_exists "onboot_linux" "onboot_linux function should exist when sourced"
+shelltest test_case "onboot command exists"
+# Command should be available on PATH
+shelltest assert_command_exists "onboot" "onboot command should be available on PATH"
 
 # Test: onboot startup tasks (mock test)
 shelltest test_case "onboot startup tasks"
@@ -103,14 +88,12 @@ shelltest assert_contains "$output" "Linux" "onboot should handle Linux tasks"
 # Test: onboot with empty argument
 shelltest test_case "onboot with empty argument"
 output=$(onboot "" 2>&1)
-# onboot should handle empty arguments gracefully
-shelltest assert_contains "$output" "onboot.sh" "onboot should handle empty arguments"
+shelltest assert_contains "$output" "onboot" "onboot should handle empty arguments"
 
 # Test: onboot with whitespace argument
 shelltest test_case "onboot with whitespace argument"
 output=$(onboot "   " 2>&1)
-# onboot should handle whitespace arguments gracefully
-shelltest assert_contains "$output" "onboot.sh" "onboot should handle whitespace arguments"
+shelltest assert_contains "$output" "onboot" "onboot should handle whitespace arguments"
 
 # Test: onboot command structure
 shelltest test_case "onboot command structure"

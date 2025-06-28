@@ -2,7 +2,7 @@ SHELL := /usr/bin/env bash
 
 SCRIPTS_SH := DEBUG=1 LOG_FILE=./tests.log ./src/bin/scripts.sh
 
-VALID_TARGETS := all help test install uninstall build
+VALID_TARGETS := all help test check install uninstall build
 
 .PHONY: $(VALID_TARGETS)
 
@@ -17,6 +17,8 @@ build: setup
 test: build
 	$(SCRIPTS_SH) test
 
+check: test
+
 install: build
 	$(SCRIPTS_SH) install
 
@@ -27,6 +29,6 @@ clean:
 	git clean -Xdf
 
 setup:
-	chmod +x src/bin/*.sh
-	chmod +x tests/bin/*.sh
+	chmod +x src/bin/*
+	chmod +x tests/bin/*
 

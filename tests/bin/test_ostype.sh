@@ -65,7 +65,7 @@ shelltest assert_contains "$output" "ostype.sh" "invalid command should show hel
 
 # Test: ostype function directly
 shelltest test_case "ostype function direct call"
-source "../../src/bin/ostype.sh"
+# Command should be available on PATH
 
 # Test get_ostype function
 output=$(get_ostype)

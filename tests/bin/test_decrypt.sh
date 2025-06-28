@@ -33,7 +33,7 @@ shelltest assert_contains "$output" "Unknown argument" "decrypt should error wit
 
 # Test: decrypt function directly
 shelltest test_case "decrypt function direct call"
-source "../../src/bin/decrypt.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(decrypt --help 2>&1)
@@ -51,12 +51,12 @@ shelltest assert_contains "$output" "--recipient" "help should mention recipient
 
 # Test: decrypt function exists when sourced
 shelltest test_case "decrypt function exists when sourced"
-source "../../src/bin/decrypt.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "decrypt" "decrypt function should exist when sourced"
 
 # Test: decrypt help function exists
 shelltest test_case "decrypt help function exists"
-source "../../src/bin/decrypt.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "decrypt_help" "decrypt_help function should exist when sourced"
 
 # Test: decrypt input option validation

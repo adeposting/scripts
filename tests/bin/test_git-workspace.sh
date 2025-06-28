@@ -33,7 +33,7 @@ shelltest assert_contains "$output" "Unknown option" "git-workspace should error
 
 # Test: git-workspace function directly
 shelltest test_case "git-workspace function direct call"
-source "../../src/bin/git-workspace.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(git-workspace -h 2>&1)
@@ -57,17 +57,17 @@ shelltest assert_contains "$output" "--sync" "git-workspace should have sync opt
 
 # Test: git-workspace function exists when sourced
 shelltest test_case "git-workspace function exists when sourced"
-source "../../src/bin/git-workspace.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "git_workspace" "git_workspace function should exist when sourced"
 
 # Test: git-workspace help function exists
 shelltest test_case "git-workspace help function exists"
-source "../../src/bin/git-workspace.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "git_workspace_help" "git_workspace_help function should exist when sourced"
 
 # Test: git-workspace sync function exists
 shelltest test_case "git-workspace sync function exists"
-source "../../src/bin/git-workspace.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "git_workspace_sync" "git_workspace_sync function should exist when sourced"
 
 # Test: git-workspace with --sync option (mock test)

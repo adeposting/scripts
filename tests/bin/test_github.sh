@@ -38,7 +38,7 @@ shelltest assert_contains "$output" "github.sh" "invalid command should show hel
 
 # Test: github function directly
 shelltest test_case "github function direct call"
-source "../../src/bin/github.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(github help)
@@ -55,22 +55,22 @@ shelltest assert_contains "$output" "Delete Repos Options:" "help should show de
 
 # Test: github function exists when sourced
 shelltest test_case "github function exists when sourced"
-source "../../src/bin/github.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "github" "github function should exist when sourced"
 
 # Test: github help function exists
 shelltest test_case "github help function exists"
-source "../../src/bin/github.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "github_help" "github_help function should exist when sourced"
 
 # Test: github create repos function exists
 shelltest test_case "github create repos function exists"
-source "../../src/bin/github.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "github_create_repos" "github_create_repos function should exist when sourced"
 
 # Test: github delete repos function exists
 shelltest test_case "github delete repos function exists"
-source "../../src/bin/github.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "github_delete_repos" "github_delete_repos function should exist when sourced"
 
 # Test: github create-repos command (mock test)

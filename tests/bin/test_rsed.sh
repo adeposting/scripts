@@ -38,7 +38,7 @@ shelltest assert_contains "$output" "sed script is required" "rsed should error 
 
 # Test: rsed function directly
 shelltest test_case "rsed function direct call"
-source "../../src/bin/rsed.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(rsed --help 2>&1)
@@ -55,22 +55,22 @@ shelltest assert_contains "$output" "--no-hidden" "help should mention no-hidden
 
 # Test: rsed function exists when sourced
 shelltest test_case "rsed function exists when sourced"
-source "../../src/bin/rsed.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "rsed" "rsed function should exist when sourced"
 
 # Test: rsed help function exists
 shelltest test_case "rsed help function exists"
-source "../../src/bin/rsed.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "rsed_help" "rsed_help function should exist when sourced"
 
 # Test: rsed sed configuration function exists
 shelltest test_case "rsed sed configuration function exists"
-source "../../src/bin/rsed.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "_rsed_configure_sed" "_rsed_configure_sed function should exist when sourced"
 
 # Test: rsed build command function exists
 shelltest test_case "rsed build command function exists"
-source "../../src/bin/rsed.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "_rsed_build_sed_command" "_rsed_build_sed_command function should exist when sourced"
 
 # Test: rsed option parsing (mock test)

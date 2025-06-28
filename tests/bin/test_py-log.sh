@@ -38,7 +38,7 @@ shelltest assert_contains "$output" "shlog.sh" "invalid command should show help
 
 # Test: shlog function directly
 shelltest test_case "shlog function direct call"
-source "../../src/bin/shlog.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(shlog help)
@@ -159,32 +159,32 @@ shelltest assert_equal "0" "$?" "shlog is-debug should return success when debug
 
 # Test: shlog function exists when sourced
 shelltest test_case "shlog function exists when sourced"
-source "../../src/bin/shlog.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "log" "log function should exist when sourced"
 
 # Test: shlog help function exists
 shelltest test_case "shlog help function exists"
-source "../../src/bin/shlog.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "log_help" "log_help function should exist when sourced"
 
 # Test: shlog level ranking function exists
 shelltest test_case "shlog level ranking function exists"
-source "../../src/bin/shlog.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "get_log_level_number" "get_log_level_number function should exist when sourced"
 
 # Test: shlog level color function exists
 shelltest test_case "shlog level color function exists"
-source "../../src/bin/shlog.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "get_log_level_color" "get_log_level_color function should exist when sourced"
 
 # Test: shlog get level function exists
 shelltest test_case "shlog get level function exists"
-source "../../src/bin/shlog.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "get_log_level" "get_log_level function should exist when sourced"
 
 # Test: shlog level ranking
 shelltest test_case "shlog level ranking"
-source "../../src/bin/shlog.sh"
+# Command should be available on PATH
 debug_num=$(get_log_level_number "debug")
 info_num=$(get_log_level_number "info")
 note_num=$(get_log_level_number "note")
@@ -198,7 +198,7 @@ shelltest assert_equal "4" "$error_num" "error should have rank 4"
 
 # Test: shlog level colors
 shelltest test_case "shlog level colors"
-source "../../src/bin/shlog.sh"
+# Command should be available on PATH
 debug_color=$(get_log_level_color "debug")
 info_color=$(get_log_level_color "info")
 note_color=$(get_log_level_color "note")

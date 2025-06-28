@@ -3,20 +3,20 @@ version: '3.8'
 services:
   test-linux:
     build:
-      context: .
-      dockerfile: Dockerfile.archlinux
+      context: ../..
+      dockerfile: dev/docker/Dockerfile.archlinux
     volumes:
-      - ../../:/home/docker/scripts:rw
+      - ../../.docker/linux:/home/docker/scripts:rw
       - ./run-tests.sh:/home/docker/run-tests.sh:ro
     working_dir: /home/docker/scripts
     command: ["bash", "/home/docker/run-tests.sh"]
 
   test-darwin:
     build:
-      context: .
-      dockerfile: Dockerfile.darwin
+      context: ../..
+      dockerfile: dev/docker/Dockerfile.darwin
     volumes:
-      - ../../:/home/docker/scripts:rw
+      - ../../.docker/darwin:/home/docker/scripts:rw
       - ./run-tests.sh:/home/docker/run-tests.sh:ro
     working_dir: /home/docker/scripts
     command: ["bash", "/home/docker/run-tests.sh"] 

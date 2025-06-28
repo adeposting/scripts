@@ -33,7 +33,7 @@ shelltest assert_contains "$output" "Unknown option" "unlinker should error with
 
 # Test: unlinker function directly
 shelltest test_case "unlinker function direct call"
-source "../../src/bin/unlinker.sh"
+# Command should be available on PATH
 
 # Test help behavior
 output=$(unlinker --help 2>&1)
@@ -50,12 +50,12 @@ shelltest assert_contains "$output" "--dry-run" "help should mention dry-run opt
 
 # Test: unlinker function exists when sourced
 shelltest test_case "unlinker function exists when sourced"
-source "../../src/bin/unlinker.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "unlinker" "unlinker function should exist when sourced"
 
 # Test: unlinker help function exists
 shelltest test_case "unlinker help function exists"
-source "../../src/bin/unlinker.sh"
+# Command should be available on PATH
 shelltest assert_function_exists "unlinker_help" "unlinker_help function should exist when sourced"
 
 # Test: unlinker source option validation
