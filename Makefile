@@ -15,6 +15,7 @@ build: setup
 	$(SCRIPTS_SH) build
 
 test: build
+	rm -rf .docker
 	$(SCRIPTS_SH) test
 
 check: test
