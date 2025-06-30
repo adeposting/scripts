@@ -309,23 +309,3 @@ github() {
 }
 
 github "$@" 
-github_help() {
-    color set bright-white
-    echo
-    echo "github.sh - GitHub repository management utility"
-    echo
-    echo "  Usage: $0 <command> [OPTIONS]"
-    echo
-    echo "Description:"
-    echo "  GitHub repository management utility"
-    echo
-    echo "Commands:"
-    echo "  create-repos             create repositories"
-    echo "  delete-repos             delete repositories"
-    echo
-    echo "Options:"
-    echo "  --repos <list>          comma-separated list of repositories"
-    echo "  --user <username>       GitHub username"
-    echo
-    color reset
-}
