@@ -3,16 +3,17 @@
 set -oue pipefail
 
 gpgrc_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "gpgrc.sh"
+    echo
     echo "  Usage: $0 <command>"
     echo
     echo "Commands:"
-    echo "  init              → ensure GPG loopback pinentry is enabled"
-    echo "  help, --help, -h  → show this help text"
+    echo "  init                    → initialize GPG loopback mode"
+    echo "  help, --help, -h        → show this help text"
     echo
-    color reset
+    shlog _end-help-text
 }
 
 gpgrc_init() {

@@ -180,6 +180,43 @@ shelltest test_case "decrypt logging options"
 output=$(decrypt --help 2>&1)
 shelltest assert_contains "$output" "decrypt.sh" "decrypt should handle logging options"
 
+# Test: decrypt with --quiet option
+shelltest test_case "decrypt with --quiet option"
+output=$(decrypt --quiet --help 2>&1)
+shelltest assert_contains "$output" "decrypt.sh" "decrypt should handle --quiet option"
+
+# Test: decrypt with --verbose option
+shelltest test_case "decrypt with --verbose option"
+output=$(decrypt --verbose --help 2>&1)
+shelltest assert_contains "$output" "decrypt.sh" "decrypt should handle --verbose option"
+
+# Test: decrypt with --log-level option
+shelltest test_case "decrypt with --log-level option"
+output=$(decrypt --log-level debug --help 2>&1)
+shelltest assert_contains "$output" "decrypt.sh" "decrypt should handle --log-level option"
+
+# Test: decrypt with --log-file option
+shelltest test_case "decrypt with --log-file option"
+temp_file=$(mktemp)
+output=$(decrypt --log-file "$temp_file" --help 2>&1)
+shelltest assert_contains "$output" "decrypt.sh" "decrypt should handle --log-file option"
+rm -f "$temp_file"
+
+# Test: decrypt with mixed logging options
+shelltest test_case "decrypt with mixed logging options"
+output=$(decrypt --quiet --log-level info --help 2>&1)
+shelltest assert_contains "$output" "decrypt.sh" "decrypt should handle mixed logging options"
+
+# Test: decrypt with invalid logging option
+shelltest test_case "decrypt with invalid logging option"
+output=$(decrypt --log-level 2>&1)
+shelltest assert_contains "$output" "--log-level requires a value" "decrypt should error on invalid logging option"
+
+# Test: decrypt with unknown option after logging options
+shelltest test_case "decrypt with unknown option after logging options"
+output=$(decrypt --quiet --unknown-option 2>&1)
+shelltest assert_contains "$output" "Unknown argument" "decrypt should error on unknown option after logging options"
+
 # Test: decrypt tar.gz handling (mock test)
 shelltest test_case "decrypt tar.gz handling"
 # Test that decrypt can handle tar.gz files

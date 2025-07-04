@@ -3,18 +3,20 @@
 set -oue pipefail
 
 helloworld_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "helloworld.sh"
-    echo "  Usage: $0 [help|--help|-h]"
     echo
-    echo "Commands:"
-    echo "  help|--help|-h  → prints this help text"
+    echo "  Usage: $0 [OPTIONS]"
     echo
-    echo "If no command is given, the script just prints"
-    echo "the message 'hello world'" 
+    echo "Description:"
+    echo "  A simple hello world script for testing purposes."
     echo
-    color reset
+    echo "Options:"
+    echo "  --name <name>           specify a custom name (default: World)"
+    echo "  help, --help, -h        show this help text"
+    echo
+    shlog _end-help-text
 }
 
 helloworld() {

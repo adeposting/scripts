@@ -3,7 +3,7 @@
 set -oue pipefail
 
 ostype_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "ostype.sh"
     echo "  Usage: $0 <command> [args...]"
@@ -13,7 +13,7 @@ ostype_help() {
     echo "  is <os-name>            → return success if OS matches, error otherwise"
     echo "  help, --help, -h        → show this help text"
     echo
-    color reset
+    shlog _end-help-text
 }
 
 get_ostype() {

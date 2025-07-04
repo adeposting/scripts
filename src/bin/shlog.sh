@@ -7,7 +7,7 @@ LOG_LEVEL="${LOG_LEVEL:-}"
 LOG_FILE="${LOG_FILE:-}"
 
 log_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "shlog.sh"
     echo
@@ -44,7 +44,7 @@ log_help() {
     echo "  is-quiet                → check if quiet mode is enabled"
     echo "  is-debug                → check if debug mode is enabled"
     echo
-    color reset
+    shlog _end-help-text
 }
 
 # --- Internal function: Print common logging help text for other scripts ---
@@ -54,6 +54,16 @@ _shlog_print_common_help() {
     echo "  --verbose               set shlog level to debug"
     echo "  --log-level LEVEL       set shlog level explicitly"
     echo "  --log-file FILE         shlog file path"
+}
+
+# --- Internal function: Begin help text with color ---
+_shlog_begin_help_text() {
+    color set bright-white
+}
+
+# --- Internal function: End help text with color reset ---
+_shlog_end_help_text() {
+    color reset
 }
 
 # --- Internal function: Parse common logging options for other scripts ---
@@ -99,6 +109,49 @@ _shlog_parse_options() {
     
     # Return remaining arguments
     printf '%s\n' "${remaining_args[@]}"
+}
+
+# --- Simplified argument parsing for other scripts ---
+_shlog_parse_and_export() {
+    local args=("$@")
+    local remaining_args=()
+    
+    for ((i=0; i<${#args[@]}; i++)); do
+        case "${args[i]}" in
+            --quiet)
+                export LOG_LEVEL="warn"
+                ;;
+            --verbose)
+                export LOG_LEVEL="debug"
+                ;;
+            --log-level)
+                if [[ $((i+1)) -lt ${#args[@]} ]]; then
+                    export LOG_LEVEL="${args[i+1]}"
+                    ((i++))
+                else
+                    shlog error "--log-level requires a value"
+                    return 1
+                fi
+                ;;
+            --log-file)
+                if [[ $((i+1)) -lt ${#args[@]} ]]; then
+                    export LOG_FILE="${args[i+1]}"
+                    ((i++))
+                else
+                    shlog error "--log-file requires a value"
+                    return 1
+                fi
+                ;;
+            *)
+                remaining_args+=("${args[i]}")
+                ;;
+        esac
+    done
+    
+    # Output remaining arguments as a single line for easy parsing
+    if [[ ${#remaining_args[@]} -gt 0 ]]; then
+        printf '%s\n' "${remaining_args[@]}"
+    fi
 }
 
 # --- Log level ranking ---
@@ -277,6 +330,16 @@ log() {
         _parse-options)
             shift
             _shlog_parse_options "$@"
+            ;;
+        _parse-and-export)
+            shift
+            _shlog_parse_and_export "$@"
+            ;;
+        _begin-help-text)
+            _shlog_begin_help_text
+            ;;
+        _end-help-text)
+            _shlog_end_help_text
             ;;
         info)               log_info "$@" ;;
         warn)               log_warn "$@" ;;

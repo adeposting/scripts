@@ -4,30 +4,20 @@
 set -euo pipefail
 
 scripts_help() {
-    # Check if color command exists before using it
-    if command -v color >/dev/null 2>&1; then
-        color set bright-white
-    fi
+    shlog _begin-help-text
     echo
-    echo "scripts.sh"
+    echo "scripts.sh - Script management utility"
+    echo
     echo "  Usage: $0 <command> [args...]"
     echo
     echo "Commands:"
-    echo "  bootstrap               → bootstrap the scripts environment"
-    echo "  init                    → initialize the scripts environment"
-    echo "  test                    → run all tests"
-    echo "  build                   → build the scripts distribution"
-    echo "  install                 → install scripts to ~/.local/share/scripts"
-    echo "  uninstall               → uninstall scripts from ~/.local/share/scripts"
-    echo "  env                     → show environment information"
-    echo "  help, --help, -h        → show this help text"
+    echo "  list                     → list all available scripts"
+    echo "  install                  → install scripts to system PATH"
+    echo "  uninstall                → remove scripts from system PATH"
+    echo "  update                   → update scripts from repository"
+    echo "  help, --help, -h         → show this help text"
     echo
-    echo "Environment:"
-    echo "  SCRIPTS_REPO_ROOT_DIR → exports path to the scripts repository root"
-    echo
-    if command -v color >/dev/null 2>&1; then
-        color reset
-    fi
+    shlog _end-help-text
 }
 
 # --- Detect if current working directory is the scripts repository root ---

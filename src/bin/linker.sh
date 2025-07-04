@@ -4,7 +4,7 @@
 set -oue pipefail
 
 linker_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "linker.sh - Create symlinks from source to destination"
     echo
@@ -49,7 +49,7 @@ linker_help() {
     echo "  $0 --source ~/config --destination ~/.config --rename 's/config\\.sh$/.conf/'"
     echo "  $0 --source ~/config --destination ~/.config --rename 's/^([^/]+)\\.sh$/\1.conf/'"
     echo
-    color reset
+    shlog _end-help-text
 }
 
 linker() {
@@ -58,7 +58,6 @@ linker() {
     local force=false
     local rename_expr=""
     local lister_args=()
-    local shlog_args=()
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -103,18 +102,22 @@ linker() {
                     shift
                 fi
                 ;;
-            --quiet|--verbose|--log-level|--log-file)
-                shlog_args+=("$1")
-                if [[ "$1" == "--log-level" || "$1" == "--log-file" ]]; then
-                    shlog_args+=("$2")
-                    shift 2
-                else
-                    shift
-                fi
-                ;;
             --help|-h)
                 linker_help
                 return 0
+                ;;
+            --*)
+                # Let shlog handle logging options automatically
+                local remaining_args
+                if ! remaining_args=$(shlog _parse-and-export "$@"); then
+                    return 1
+                fi
+                if [[ -n "$remaining_args" ]]; then
+                    echo "Error: Unknown option: $1" >&2
+                    linker_help
+                    return 1
+                fi
+                break
                 ;;
             *)
                 echo "Error: Unknown option: $1" >&2
@@ -124,19 +127,9 @@ linker() {
         esac
     done
     
-    # Parse logging options
-    if [[ ${#shlog_args[@]} -gt 0 ]]; then
-        local remaining_shlog_args
-        if ! remaining_shlog_args=$(shlog _parse-options "${shlog_args[@]}"); then
-            return 1
-        fi
-    fi
-    
     # Validate required arguments
     if [[ -z "$source_dir" || -z "$destination_dir" ]]; then
         echo "Error: --source and --destination are required" >&2
-        linker_help
-        linker_help
         linker_help
         return 1
     fi
@@ -154,18 +147,10 @@ linker() {
     # Change to source directory for relative paths
     cd "$source_dir" || return 1
     
-    if command -v shlog >/dev/null 2>&1; then
-        shlog info "Linking from: $source_dir"
-        shlog info "Linking into: $destination_dir"
-        if [[ -n "$rename_expr" ]]; then
-            shlog info "Using rename expression: $rename_expr"
-        fi
-    else
-        echo "Linking from: $source_dir"
-        echo "Linking into: $destination_dir"
-        if [[ -n "$rename_expr" ]]; then
-            echo "Using rename expression: $rename_expr"
-        fi
+    echo "Linking from: $source_dir"
+    echo "Linking into: $destination_dir"
+    if [[ -n "$rename_expr" ]]; then
+        echo "Using rename expression: $rename_expr"
     fi
     
     # Get files using lister
@@ -182,11 +167,7 @@ linker() {
     fi
     
     if [[ -z "$files" ]]; then
-        if command -v shlog >/dev/null 2>&1; then
-            shlog info "No files found to link"
-        else
-            echo "No files found to link"
-        fi
+        echo "No files found to link"
         return 0
     fi
     
@@ -209,19 +190,11 @@ linker() {
     
     # Report existing files if not forcing
     if [[ ${#existing_files[@]} -gt 0 && "$force" != "true" ]]; then
-        if command -v shlog >/dev/null 2>&1; then
-            shlog error "The following files already exist in destination:"
-            for path in "${existing_files[@]}"; do
-                shlog error "  $path"
-            done
-            shlog error "Use --force to override existing files"
-        else
-            echo "Error: The following files already exist in destination:" >&2
-            for path in "${existing_files[@]}"; do
-                echo "  $path" >&2
-            done
-            echo "Use --force to override existing files" >&2
-        fi
+        echo "Error: The following files already exist in destination:" >&2
+        for path in "${existing_files[@]}"; do
+            echo "  $path" >&2
+        done
+        echo "Use --force to override existing files" >&2
         return 1
     fi
     
@@ -243,11 +216,7 @@ linker() {
         dst_dir=$(dirname "$dst_path")
         if [[ ! -d "$dst_dir" ]]; then
             mkdir -p "$dst_dir" || {
-                if command -v shlog >/dev/null 2>&1; then
-                    shlog error "Failed to create directory: $dst_dir"
-                else
-                    echo "Error: Failed to create directory: $dst_dir" >&2
-                fi
+                echo "Error: Failed to create directory: $dst_dir" >&2
                 continue
             }
         fi
@@ -259,26 +228,14 @@ linker() {
         
         # Create symlink
         if ln -s "$src_path" "$dst_path" 2>/dev/null; then
-            if command -v shlog >/dev/null 2>&1; then
-                shlog info "Linked: $src_path → $dst_path"
-            else
-                echo "Linked: $src_path → $dst_path"
-            fi
+            echo "Linked: $src_path → $dst_path"
             ((linked_count++))
         else
-            if command -v shlog >/dev/null 2>&1; then
-                shlog error "Failed to link: $src_path → $dst_path"
-            else
-                echo "Error: Failed to link: $src_path → $dst_path" >&2
-            fi
+            echo "Error: Failed to link: $src_path → $dst_path" >&2
         fi
     done <<< "$files"
     
-    if command -v shlog >/dev/null 2>&1; then
-        shlog info "Successfully linked $linked_count files"
-    else
-        echo "Successfully linked $linked_count files"
-    fi
+    echo "Successfully linked $linked_count files"
 }
 
 linker "$@"

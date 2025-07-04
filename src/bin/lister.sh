@@ -4,7 +4,7 @@
 set -oue pipefail
 
 lister_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "lister.sh - File listing utility"
     echo
@@ -24,7 +24,7 @@ lister_help() {
     echo "  $0 --no-recursive       # current directory only"
     echo "  $0 /path/to/dir         # list specific directory"
     echo
-    color reset
+    shlog _end-help-text
 }
 
 # --- Internal function: Print common help text for other scripts ---

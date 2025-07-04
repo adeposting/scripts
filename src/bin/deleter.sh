@@ -4,7 +4,7 @@
 set -oue pipefail
 
 deleter_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "deleter.sh - Secure file deletion utility"
     echo
@@ -45,7 +45,7 @@ deleter_help() {
     echo "  $0 --secure directory/         # securely delete directory"
     echo "  $0 --include '\\.tmp$' .       # delete only .tmp files"
     echo
-    color reset
+    shlog _end-help-text
 }
 
 deleter() {
@@ -53,7 +53,6 @@ deleter() {
     local secure=false
     local force=false
     local lister_args=()
-    local shlog_args=()
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -75,23 +74,22 @@ deleter() {
                     shift
                 fi
                 ;;
-            --quiet|--verbose|--log-level|--log-file)
-                shlog_args+=("$1")
-                if [[ "$1" == "--log-level" || "$1" == "--log-file" ]]; then
-                    shlog_args+=("$2")
-                    shift 2
-                else
-                    shift
-                fi
-                ;;
             --help|-h)
                 deleter_help
                 return 0
                 ;;
-            -*)
-                echo "Error: Unknown option: $1" >&2
-                deleter_help
-                return 1
+            --*)
+                # Let shlog handle logging options automatically
+                local remaining_args
+                if ! remaining_args=$(shlog _parse-and-export "$@"); then
+                    return 1
+                fi
+                if [[ -n "$remaining_args" ]]; then
+                    echo "Error: Unknown option: $1" >&2
+                    deleter_help
+                    return 1
+                fi
+                break
                 ;;
             *)
                 if [[ -z "$target" ]]; then
@@ -105,20 +103,9 @@ deleter() {
         esac
     done
     
-    # Parse logging options
-    if [[ ${#shlog_args[@]} -gt 0 ]]; then
-        local remaining_shlog_args
-        remaining_shlog_args=$(shlog _parse-options "${shlog_args[@]}")
-        if [[ $? -ne 0 ]]; then
-            return 1
-        fi
-    fi
-    
     # Validate target
     if [[ -z "$target" ]]; then
         echo "Error: Target is required" >&2
-        deleter_help
-        deleter_help
         deleter_help
         return 1
     fi
