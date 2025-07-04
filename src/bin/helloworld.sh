@@ -12,9 +12,12 @@ helloworld_help() {
     echo "Description:"
     echo "  A simple hello world script for testing purposes."
     echo
+    echo "Commands:"
+    echo "  (default)               prints hello world"
+    echo "  help, --help, -h        prints this help text"
+    echo
     echo "Options:"
     echo "  --name <name>           specify a custom name (default: World)"
-    echo "  help, --help, -h        show this help text"
     echo
     shlog _end-help-text
 }

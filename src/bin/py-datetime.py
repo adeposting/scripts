@@ -134,10 +134,10 @@ def isocalendar(dt_string: str) -> dict:
     return {'year': year, 'week': week, 'weekday': weekday}
 
 
-def timestamp(dt_string: str) -> float:
+def timestamp(dt_string: str) -> int:
     """Get timestamp."""
     dt = datetime.fromisoformat(dt_string)
-    return dt.timestamp()
+    return int(dt.timestamp())
 
 
 def fromtimestamp(timestamp_value: float) -> str:

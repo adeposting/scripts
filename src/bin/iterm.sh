@@ -9,6 +9,9 @@ iterm_help() {
   echo
   echo "  Usage: $0 <command>"
   echo
+  echo "Arguments:"
+  echo "  <command>                command to run in iTerm2"
+  echo
   echo "Commands:"
   echo "  profile <name>           → set iTerm2 profile"
   echo "  help, --help, -h         → show this help text"

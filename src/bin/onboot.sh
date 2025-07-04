@@ -15,6 +15,11 @@ onboot_help() {
     echo "  list                     → list all scripts in boot sequence"
     echo "  help, --help, -h         → show this help text"
     echo
+    echo "Behavior:"
+    echo "  When run without arguments, performs startup tasks based on OS:"
+    echo "  - macOS/Darwin: Unloads plist files, launches GUI and terminal apps"
+    echo "  - Linux: Performs Linux-specific startup tasks"
+    echo
     shlog _end-help-text
 }
 

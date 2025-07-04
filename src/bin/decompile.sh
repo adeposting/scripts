@@ -629,6 +629,22 @@ decompile() {
                 shift
                 ;;
             --help|-h)
+                # Validate options before showing help
+                if [[ -n "$language" ]]; then
+                    validate_language "$language" || return 1
+                fi
+                
+                if [[ -n "$tool" ]]; then
+                    validate_tool "$tool" || return 1
+                fi
+                
+                if [[ -n "$file_type" ]]; then
+                    validate_file_type "$file_type" || return 1
+                fi
+                
+                # Check compatibility
+                validate_compatibility "$language" "$tool" "$file_type" || return 1
+                
                 decompile_help
                 return 0
                 ;;

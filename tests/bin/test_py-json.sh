@@ -24,11 +24,9 @@ shelltest test_suite "py-json"
 
 # Test 1: Command exists and shows help
 shelltest test_case "py-json command exists and shows help"
-if $JSON_CMD --help >/dev/null 2>&1; then
-    shelltest test_pass
-else
-    shelltest test_fail "py-json command should be available"
-fi
+shelltest assert_command_exists "$JSON_CMD" "py-json command should be available"
+output=$($JSON_CMD --help 2>&1)
+shelltest assert_contains "$output" "JSON CLI" "help should show JSON CLI description"
 
 # Test 2: dumps command
 shelltest test_case "dumps command"

@@ -13,7 +13,7 @@ shelltest assert_command_exists "py-base64" "py-base64 command should be availab
 shelltest test_case "py-base64 help command"
 output=$(py-base64 --help 2>&1)
 shelltest assert_contains "$output" "py-base64" "help should show script name"
-shelltest assert_contains "$output" "Usage:" "help should show usage information"
+shelltest assert_contains "$output" "usage:" "help should show usage information"
 
 # Test: b64encode command
 shelltest test_case "b64encode command"

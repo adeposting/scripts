@@ -98,9 +98,13 @@ def tanh(x: float) -> float:
     return math.tanh(x)
 
 
-def pow(x: float, y: float) -> float:
+def pow(x: float, y: float) -> Union[int, float]:
     """Power function."""
-    return math.pow(x, y)
+    result = math.pow(x, y)
+    # Return integer if result is a whole number
+    if result == int(result):
+        return int(result)
+    return result
 
 
 def fabs(x: float) -> float:

@@ -215,7 +215,10 @@ Examples:
                 print(json.dumps(result, indent=2))
             else:
                 if isinstance(result, (dict, list)):
-                    print(json.dumps(result, indent=2))
+                    if args.command == 'findall' and not result:
+                        print("")  # Return empty string for empty findall results
+                    else:
+                        print(json.dumps(result, indent=2))
                 else:
                     print(result)
         else:

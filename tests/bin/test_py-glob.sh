@@ -84,7 +84,7 @@ shelltest assert_contains "$result" "testdir/subdir/deep.txt" "recursive iglob s
 # Test: escape command - basic characters
 shelltest test_case "escape command - basic characters"
 result=$($GLOB_CMD escape "file[1].txt")
-shelltest assert_contains "$result" "file\\[1\\].txt" "escape should escape special characters"
+shelltest assert_contains "$result" "file[[]1].txt" "escape should escape special characters"
 
 # Test: escape command - multiple special characters
 shelltest test_case "escape command - multiple special characters"

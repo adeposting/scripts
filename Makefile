@@ -1,8 +1,6 @@
 SHELL := /usr/bin/env bash
 
-SCRIPTS_SH := DEBUG=1 LOG_FILE=./tests.log ./src/bin/scripts.sh
-
-VALID_TARGETS := all help test check install uninstall build
+VALID_TARGETS := all help test check install uninstall build init
 
 .PHONY: $(VALID_TARGETS)
 
@@ -12,19 +10,21 @@ help:
 	cat ./README.md
 
 build: setup
-	$(SCRIPTS_SH) build
+	./dev/bin/build.sh
 
 test: build
-	rm -rf .docker
-	$(SCRIPTS_SH) test
+	./dev/bin/test.sh
 
 check: test
 
 install: build
-	$(SCRIPTS_SH) install
+	./dev/bin/install.sh
 
 uninstall: build
-	$(SCRIPTS_SH) uninstall
+	./dev/bin/uninstall.sh
+
+init: setup
+	./dev/bin/init.sh
 
 clean:
 	git clean -Xdf
@@ -32,4 +32,5 @@ clean:
 setup:
 	chmod +x src/bin/*
 	chmod +x tests/bin/*
+	chmod +x dev/bin/*
 

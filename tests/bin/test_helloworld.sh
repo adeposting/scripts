@@ -62,6 +62,6 @@ shelltest assert_contains "$output" "helloworld.sh" "helloworld should show help
 shelltest test_case "helloworld help text content"
 output=$(helloworld help 2>&1)
 shelltest assert_contains "$output" "Commands:" "help should show commands section"
-shelltest assert_contains "$output" "help|--help|-h" "help should mention help options"
+shelltest assert_contains "$output" "help, --help, -h" "help should mention help options"
 shelltest assert_contains "$output" "prints this help text" "help should describe default behavior"
 

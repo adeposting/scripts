@@ -82,6 +82,7 @@ Examples:
         """
     )
     
+    parser.add_argument('--json', action='store_true', help='Output as JSON')
     parser.add_argument('--dry-run', action='store_true', help='Show what would be done without doing it')
     parser.add_argument('--verbose', action='store_true', help='Verbose output')
     
@@ -177,10 +178,13 @@ Examples:
         
         # Output result
         if result is not None:
-            if isinstance(result, (dict, list)):
+            if args.json:
                 print(json.dumps(result, indent=2))
             else:
-                print(result)
+                if isinstance(result, (dict, list)):
+                    print(json.dumps(result, indent=2))
+                else:
+                    print(result)
                 
     except Exception as e:
         if args.verbose:
