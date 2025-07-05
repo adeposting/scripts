@@ -135,21 +135,21 @@ shelltest assert_contains "$result" "lines" "get-terminal-size should return lin
 # Test: JSON output
 shelltest test_case "JSON output"
 setup_test_dir
-result=$($SHUTIL_CMD disk-usage . --json)
+result=$($SHUTIL_CMD --json disk-usage .)
 shelltest assert_contains "$result" "{" "JSON output should be object"
 shelltest assert_contains "$result" "}" "JSON output should be object"
 
 # Test: dry-run mode
 shelltest test_case "dry-run mode"
 setup_test_dir
-result=$($SHUTIL_CMD copy testfile.txt testfile_copy.txt --dry-run)
+result=$($SHUTIL_CMD --dry-run copy testfile.txt testfile_copy.txt)
 shelltest assert_contains "$result" "Would copy" "dry-run should show what would be done"
 shelltest assert_file_not_exists "testfile_copy.txt" "dry-run should not actually copy file"
 
 # Test: verbose mode
 shelltest test_case "verbose mode"
 setup_test_dir
-result=$($SHUTIL_CMD copy testfile.txt testfile_copy.txt --verbose 2>&1)
+result=$($SHUTIL_CMD --verbose copy testfile.txt testfile_copy.txt 2>&1)
 shelltest assert_contains "$result" "copy" "verbose should show command being executed"
 
 # Test: copy with symlinks
@@ -190,7 +190,7 @@ shelltest assert_directory_exists "testdir_dangling" "copytree should handle dan
 # Test: make-archive with verbose
 shelltest test_case "make-archive with verbose"
 setup_test_dir
-result=$($SHUTIL_CMD make-archive backup zip --root-dir . --verbose)
+result=$($SHUTIL_CMD --verbose make-archive backup zip --root-dir .)
 shelltest assert_file_exists "backup.zip" "make-archive should create zip file with verbose"
 
 # Test: unpack-archive with format

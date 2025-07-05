@@ -106,13 +106,13 @@ shelltest assert_equal "Hello, World!" "$result" "decode-file command with urlsa
 # Test: encode-file with dry run
 shelltest test_case "encode-file command with dry run"
 echo -n "Hello, World!" > test.txt
-result=$(py-base64 encode-file test.txt --encoding b64 --dry-run)
+result=$(py-base64 --dry-run encode-file test.txt --encoding b64)
 shelltest assert_contains "$result" "Would encode file: test.txt using b64" "dry run should show what would be done"
 
 # Test: decode-file with dry run
 shelltest test_case "decode-file command with dry run"
 echo "SGVsbG8sIFdvcmxkIQ==" > encoded.txt
-result=$(py-base64 decode-file encoded.txt --encoding b64 --dry-run)
+result=$(py-base64 --dry-run decode-file encoded.txt --encoding b64)
 shelltest assert_contains "$result" "Would decode file: encoded.txt using b64" "dry run should show what would be done"
 
 # Test: Error handling for non-existent file

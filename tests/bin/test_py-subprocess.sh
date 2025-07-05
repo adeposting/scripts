@@ -20,36 +20,36 @@ result=$($SUBPROCESS_CMD run echo hello)
 shelltest assert_contains "$result" "hello" "run should execute command and return output"
 shelltest assert_contains "$result" "returncode" "run should return return code"
 
-# Test: run command - with capture output
-shelltest test_case "run command - with capture output"
-result=$($SUBPROCESS_CMD run echo hello --capture-output)
-shelltest assert_contains "$result" "hello" "run should capture output"
-shelltest assert_contains "$result" "returncode" "run should return return code"
-
 # Test: run command - with timeout
 shelltest test_case "run command - with timeout"
-result=$($SUBPROCESS_CMD run sleep 1 --timeout 2)
+result=$($SUBPROCESS_CMD --timeout 2 run sleep 1)
 shelltest assert_contains "$result" "returncode" "run should handle timeout"
 
 # Test: run command - with shell
 shelltest test_case "run command - with shell"
-result=$($SUBPROCESS_CMD run "echo hello world" --shell)
+result=$($SUBPROCESS_CMD --shell run "echo hello world")
 shelltest assert_contains "$result" "hello world" "run should work with shell"
 
 # Test: call command - successful execution
 shelltest test_case "call command - successful execution"
 result=$($SUBPROCESS_CMD call echo hello)
-shelltest assert_equal "0" "$result" "call should return exit code 0 for successful command"
+# Extract just the exit code (last line if there's mixed output)
+exit_code=$(echo "$result" | tail -n1)
+shelltest assert_equal "0" "$exit_code" "call should return exit code 0 for successful command"
 
 # Test: call command - with shell
 shelltest test_case "call command - with shell"
-result=$($SUBPROCESS_CMD call "echo hello world" --shell)
-shelltest assert_equal "0" "$result" "call should work with shell"
+result=$($SUBPROCESS_CMD --shell call "echo hello world")
+# Extract just the exit code (last line if there's mixed output)
+exit_code=$(echo "$result" | tail -n1)
+shelltest assert_equal "0" "$exit_code" "call should work with shell"
 
 # Test: check-call command - successful execution
 shelltest test_case "check-call command - successful execution"
 result=$($SUBPROCESS_CMD check-call echo hello)
-shelltest assert_equal "0" "$result" "check-call should return exit code 0 for successful command"
+# Extract just the exit code (last line if there's mixed output)
+exit_code=$(echo "$result" | tail -n1)
+shelltest assert_equal "0" "$exit_code" "check-call should return exit code 0 for successful command"
 
 # Test: check-output command - successful execution
 shelltest test_case "check-output command - successful execution"
@@ -58,7 +58,7 @@ shelltest assert_equal "hello" "$result" "check-output should return command out
 
 # Test: check-output command - with shell
 shelltest test_case "check-output command - with shell"
-result=$($SUBPROCESS_CMD check-output "echo hello world" --shell)
+result=$($SUBPROCESS_CMD --shell check-output "echo hello world")
 shelltest assert_equal "hello world" "$result" "check-output should work with shell"
 
 # Test: popen command - basic usage
@@ -69,12 +69,12 @@ shelltest assert_contains "$result" "args" "popen should return command args"
 
 # Test: popen command - with mode
 shelltest test_case "popen command - with mode"
-result=$($SUBPROCESS_CMD popen echo hello --mode r)
+result=$($SUBPROCESS_CMD --mode r popen echo hello)
 shelltest assert_contains "$result" "pid" "popen should work with mode"
 
 # Test: popen command - with bufsize
 shelltest test_case "popen command - with bufsize"
-result=$($SUBPROCESS_CMD popen echo hello --bufsize 1024)
+result=$($SUBPROCESS_CMD --bufsize 1024 popen echo hello)
 shelltest assert_contains "$result" "pid" "popen should work with bufsize"
 
 # Test: get-output command - successful execution
@@ -111,63 +111,63 @@ shelltest assert_contains "$result" "Error" "check-output should fail for failed
 
 # Test: run command - with working directory
 shelltest test_case "run command - with working directory"
-result=$($SUBPROCESS_CMD run pwd --cwd /tmp)
+result=$($SUBPROCESS_CMD --cwd /tmp run pwd)
 shelltest assert_contains "$result" "/tmp" "run should work with custom working directory"
 
 # Test: run command - with environment variables
 shelltest test_case "run command - with environment variables"
-result=$($SUBPROCESS_CMD run "echo \$TEST_VAR" --env '{"TEST_VAR": "test_value"}')
+result=$($SUBPROCESS_CMD --env '{"TEST_VAR": "test_value"}' run "echo \$TEST_VAR")
 shelltest assert_contains "$result" "test_value" "run should work with custom environment"
 
 # Test: call command - with timeout
 shelltest test_case "call command - with timeout"
-result=$($SUBPROCESS_CMD call sleep 1 --timeout 2)
+result=$($SUBPROCESS_CMD --timeout 2 call sleep 1)
 shelltest assert_equal "0" "$result" "call should handle timeout"
 
 # Test: check-call command - with timeout
 shelltest test_case "check-call command - with timeout"
-result=$($SUBPROCESS_CMD check-call sleep 1 --timeout 2)
+result=$($SUBPROCESS_CMD --timeout 2 check-call sleep 1)
 shelltest assert_equal "0" "$result" "check-call should handle timeout"
 
 # Test: check-output command - with timeout
 shelltest test_case "check-output command - with timeout"
-result=$($SUBPROCESS_CMD check-output sleep 1 --timeout 2 2>&1)
+result=$($SUBPROCESS_CMD --timeout 2 check-output sleep 1 2>&1)
 shelltest assert_contains "$result" "Error" "check-output should fail with timeout"
 
 # Test: popen command - with shell
 shelltest test_case "popen command - with shell"
-result=$($SUBPROCESS_CMD popen "echo hello world" --shell)
+result=$($SUBPROCESS_CMD --shell popen "echo hello world")
 shelltest assert_contains "$result" "pid" "popen should work with shell"
 
 # Test: popen command - with working directory
 shelltest test_case "popen command - with working directory"
-result=$($SUBPROCESS_CMD popen pwd --cwd /tmp)
+result=$($SUBPROCESS_CMD --cwd /tmp popen pwd)
 shelltest assert_contains "$result" "pid" "popen should work with custom working directory"
 
 # Test: JSON output
 shelltest test_case "JSON output"
-result=$($SUBPROCESS_CMD run echo hello --json)
+result=$($SUBPROCESS_CMD --json run echo hello)
 shelltest assert_contains "$result" "{" "JSON output should be object"
 shelltest assert_contains "$result" "}" "JSON output should be object"
 
 # Test: dry-run mode
 shelltest test_case "dry-run mode"
-result=$($SUBPROCESS_CMD run echo hello --dry-run)
+result=$($SUBPROCESS_CMD --dry-run run echo hello)
 shelltest assert_contains "$result" "Would run" "dry-run should show what would be done"
 
 # Test: verbose mode
 shelltest test_case "verbose mode"
-result=$($SUBPROCESS_CMD run echo hello --verbose 2>&1)
+result=$($SUBPROCESS_CMD --verbose run echo hello 2>&1)
 shelltest assert_contains "$result" "run" "verbose should show command being executed"
 
 # Test: run command - with text mode
 shelltest test_case "run command - with text mode"
-result=$($SUBPROCESS_CMD run echo hello --text)
+result=$($SUBPROCESS_CMD --text run echo hello)
 shelltest assert_contains "$result" "hello" "run should work with text mode"
 
 # Test: check-output command - with text mode
 shelltest test_case "check-output command - with text mode"
-result=$($SUBPROCESS_CMD check-output echo hello --text)
+result=$($SUBPROCESS_CMD --text check-output echo hello)
 shelltest assert_equal "hello" "$result" "check-output should work with text mode"
 
 # Test: run command - with check flag

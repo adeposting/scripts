@@ -115,32 +115,38 @@ _shlog_parse_options() {
 _shlog_parse_and_export() {
     local args=("$@")
     local remaining_args=()
+    local processed=false
     
     for ((i=0; i<${#args[@]}; i++)); do
         case "${args[i]}" in
-            --quiet)
-                export LOG_LEVEL="warn"
-                ;;
-            --verbose)
-                export LOG_LEVEL="debug"
-                ;;
-            --log-level)
-                if [[ $((i+1)) -lt ${#args[@]} ]]; then
-                    export LOG_LEVEL="${args[i+1]}"
-                    ((i++))
-                else
-                    shlog error "--log-level requires a value"
-                    return 1
-                fi
-                ;;
-            --log-file)
-                if [[ $((i+1)) -lt ${#args[@]} ]]; then
-                    export LOG_FILE="${args[i+1]}"
-                    ((i++))
-                else
-                    shlog error "--log-file requires a value"
-                    return 1
-                fi
+            --quiet|--verbose|--log-level|--log-file)
+                processed=true
+                case "${args[i]}" in
+                    --quiet)
+                        export LOG_LEVEL="warn"
+                        ;;
+                    --verbose)
+                        export LOG_LEVEL="debug"
+                        ;;
+                    --log-level)
+                        if [[ $((i+1)) -lt ${#args[@]} ]]; then
+                            export LOG_LEVEL="${args[i+1]}"
+                            ((i++))
+                        else
+                            shlog error "--log-level requires a value"
+                            return 1
+                        fi
+                        ;;
+                    --log-file)
+                        if [[ $((i+1)) -lt ${#args[@]} ]]; then
+                            export LOG_FILE="${args[i+1]}"
+                            ((i++))
+                        else
+                            shlog error "--log-file requires a value"
+                            return 1
+                        fi
+                        ;;
+                esac
                 ;;
             *)
                 remaining_args+=("${args[i]}")
@@ -148,11 +154,18 @@ _shlog_parse_and_export() {
         esac
     done
     
-    # Output remaining arguments as a single line for easy parsing
-    if [[ ${#remaining_args[@]} -gt 0 ]]; then
-        printf '%s\n' "${remaining_args[@]}"
+    # Only return remaining args if we actually processed something
+    if [[ "$processed" == "true" ]]; then
+        if [[ ${#remaining_args[@]} -gt 0 ]]; then
+            printf '%s\n' "${remaining_args[@]}"
+        fi
+    else
+        # If we didn't process anything, return empty string
+        echo ""
     fi
 }
+
+
 
 # --- Log level ranking ---
 get_log_level_number() {
@@ -335,6 +348,7 @@ log() {
             shift
             _shlog_parse_and_export "$@"
             ;;
+
         _begin-help-text)
             _shlog_begin_help_text
             ;;

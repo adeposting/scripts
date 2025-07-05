@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Cross-shell compatible error handling
-set -oue pipefail
+set -oe pipefail
 
 decompile_help() {
     shlog _begin-help-text
@@ -39,62 +39,91 @@ decompile_help() {
 LOCAL_BIN="$HOME/.local/bin"
 LOCAL_SHARE="$HOME/.local/share"
 
-# --- Supported mappings ---
-declare -A LANGUAGE_TOOLS=(
-    ["java"]="jadx,jd-cli,javap"
-    ["python"]="uncompyle6"
-    ["csharp"]="ilspycmd"
-    ["wasm"]="wasm-decompile"
-    ["js"]="pdfjs-dist"
-    ["binary"]="ghidra,strings"
-)
+# --- Supported mappings (using functions instead of associative arrays) ---
+get_language_tools() {
+    local lang="$1"
+    case "$lang" in
+        java) echo "jadx,jd-cli,javap" ;;
+        python) echo "uncompyle6" ;;
+        csharp) echo "ilspycmd" ;;
+        wasm) echo "wasm-decompile" ;;
+        js) echo "pdfjs-dist" ;;
+        binary) echo "ghidra,strings" ;;
+        *) echo "" ;;
+    esac
+}
 
-declare -A FILE_TYPE_TOOLS=(
-    ["macho"]="ghidra"
-    ["elf"]="ghidra"
-    ["pe"]="ghidra"
-    ["apk"]="jadx"
-    ["jar"]="jd-cli"
-    ["class"]="javap"
-    ["dex"]="jadx"
-    ["pyc"]="uncompyle6"
-    ["net"]="ilspycmd"
-    ["wasm"]="wasm-decompile"
-    ["pdf"]="pdfjs-dist"
-    ["archive"]="unzip,tar"
-    ["unknown"]="strings"
-)
+get_file_type_tools() {
+    local file_type="$1"
+    case "$file_type" in
+        macho) echo "ghidra" ;;
+        elf) echo "ghidra" ;;
+        pe) echo "ghidra" ;;
+        apk) echo "jadx" ;;
+        jar) echo "jd-cli" ;;
+        class) echo "javap" ;;
+        dex) echo "jadx" ;;
+        pyc) echo "uncompyle6" ;;
+        net) echo "ilspycmd" ;;
+        wasm) echo "wasm-decompile" ;;
+        pdf) echo "pdfjs-dist" ;;
+        archive) echo "unzip,tar" ;;
+        unknown) echo "strings" ;;
+        *) echo "" ;;
+    esac
+}
 
-declare -A TOOL_LANGUAGES=(
-    ["ghidra"]="binary"
-    ["jadx"]="java"
-    ["jd-cli"]="java"
-    ["javap"]="java"
-    ["uncompyle6"]="python"
-    ["ilspycmd"]="csharp"
-    ["wasm-decompile"]="wasm"
-    ["pdfjs-dist"]="js"
-    ["strings"]="binary"
-)
+get_tool_language() {
+    local tool="$1"
+    case "$tool" in
+        ghidra) echo "binary" ;;
+        jadx) echo "java" ;;
+        jd-cli) echo "java" ;;
+        javap) echo "java" ;;
+        uncompyle6) echo "python" ;;
+        ilspycmd) echo "csharp" ;;
+        wasm-decompile) echo "wasm" ;;
+        pdfjs-dist) echo "js" ;;
+        strings) echo "binary" ;;
+        *) echo "" ;;
+    esac
+}
 
-declare -A TOOL_FILE_TYPES=(
-    ["ghidra"]="macho,elf,pe"
-    ["jadx"]="apk,dex"
-    ["jd-cli"]="jar"
-    ["javap"]="class"
-    ["uncompyle6"]="pyc"
-    ["ilspycmd"]="net"
-    ["wasm-decompile"]="wasm"
-    ["pdfjs-dist"]="pdf"
-    ["strings"]="unknown"
-)
+get_tool_file_types() {
+    local tool="$1"
+    case "$tool" in
+        ghidra) echo "macho,elf,pe" ;;
+        jadx) echo "apk,dex" ;;
+        jd-cli) echo "jar" ;;
+        javap) echo "class" ;;
+        uncompyle6) echo "pyc" ;;
+        ilspycmd) echo "net" ;;
+        wasm-decompile) echo "wasm" ;;
+        pdfjs-dist) echo "pdf" ;;
+        strings) echo "unknown" ;;
+        *) echo "" ;;
+    esac
+}
+
+get_supported_languages() {
+    echo "java python csharp wasm js binary"
+}
+
+get_supported_tools() {
+    echo "ghidra jadx jd-cli javap uncompyle6 ilspycmd wasm-decompile pdfjs-dist strings"
+}
+
+get_supported_file_types() {
+    echo "macho elf pe apk jar class dex pyc net wasm pdf archive unknown"
+}
 
 # --- Validation functions ---
 validate_language() {
     local lang="$1"
-    if [[ -z "${LANGUAGE_TOOLS[$lang]:-}" ]]; then
+    local tools=$(get_language_tools "$lang")
+    if [ -z "$tools" ]; then
         shlog error "Unsupported language: $lang"
-        shlog info "Supported languages: ${!LANGUAGE_TOOLS[*]}"
+        shlog info "Supported languages: $(get_supported_languages)"
         return 1
     fi
     return 0
@@ -102,9 +131,10 @@ validate_language() {
 
 validate_tool() {
     local tool="$1"
-    if [[ -z "${TOOL_LANGUAGES[$tool]:-}" ]]; then
+    local language=$(get_tool_language "$tool")
+    if [ -z "$language" ]; then
         shlog error "Unsupported tool: $tool"
-        shlog info "Supported tools: ${!TOOL_LANGUAGES[*]}"
+        shlog info "Supported tools: $(get_supported_tools)"
         return 1
     fi
     return 0
@@ -112,9 +142,10 @@ validate_tool() {
 
 validate_file_type() {
     local file_type="$1"
-    if [[ -z "${FILE_TYPE_TOOLS[$file_type]:-}" ]]; then
+    local tools=$(get_file_type_tools "$file_type")
+    if [ -z "$tools" ]; then
         shlog error "Unsupported file type: $file_type"
-        shlog info "Supported file types: ${!FILE_TYPE_TOOLS[*]}"
+        shlog info "Supported file types: $(get_supported_file_types)"
         return 1
     fi
     return 0
@@ -126,40 +157,45 @@ validate_compatibility() {
     local file_type="${3:-}"
     
     # If all three are specified, check full compatibility
-    if [[ -n "$language" && -n "$tool" && -n "$file_type" ]]; then
+    if [ -n "$language" ] && [ -n "$tool" ] && [ -n "$file_type" ]; then
         # Check tool supports the language
-        if [[ "${TOOL_LANGUAGES[$tool]}" != "$language" ]]; then
+        local tool_lang=$(get_tool_language "$tool")
+        if [ "$tool_lang" != "$language" ]; then
             shlog error "Tool '$tool' does not support language '$language'"
             return 1
         fi
         
         # Check tool supports the file type
-        if [[ "${TOOL_FILE_TYPES[$tool]}" != *"$file_type"* ]]; then
-            shlog error "Tool '$tool' does not support file type '$file_type'"
-            return 1
-        fi
+        local tool_file_types=$(get_tool_file_types "$tool")
+        case ",$tool_file_types," in
+            *",$file_type,"*) ;;
+            *) shlog error "Tool '$tool' does not support file type '$file_type'"; return 1 ;;
+        esac
         
         # Check file type maps to the language
-        local expected_lang="${TOOL_LANGUAGES[${FILE_TYPE_TOOLS[$file_type]}]}"
-        if [[ "$expected_lang" != "$language" ]]; then
+        local file_type_tool=$(get_file_type_tools "$file_type")
+        local expected_lang=$(get_tool_language "$file_type_tool")
+        if [ "$expected_lang" != "$language" ]; then
             shlog warn "File type '$file_type' typically produces '$expected_lang', not '$language'"
         fi
     fi
     
     # If language and tool are specified
-    if [[ -n "$language" && -n "$tool" ]]; then
-        if [[ "${TOOL_LANGUAGES[$tool]}" != "$language" ]]; then
+    if [ -n "$language" ] && [ -n "$tool" ]; then
+        local tool_lang=$(get_tool_language "$tool")
+        if [ "$tool_lang" != "$language" ]; then
             shlog error "Tool '$tool' does not support language '$language'"
             return 1
         fi
     fi
     
     # If tool and file type are specified
-    if [[ -n "$tool" && -n "$file_type" ]]; then
-        if [[ "${TOOL_FILE_TYPES[$tool]}" != *"$file_type"* ]]; then
-            shlog error "Tool '$tool' does not support file type '$file_type'"
-            return 1
-        fi
+    if [ -n "$tool" ] && [ -n "$file_type" ]; then
+        local tool_file_types=$(get_tool_file_types "$tool")
+        case ",$tool_file_types," in
+            *",$file_type,"*) ;;
+            *) shlog error "Tool '$tool' does not support file type '$file_type'"; return 1 ;;
+        esac
     fi
     
     return 0
@@ -169,12 +205,12 @@ validate_file_for_tool() {
     local file="$1"
     local tool="$2"
     
-    if [[ ! -f "$file" ]]; then
+    if [ ! -f "$file" ]; then
         shlog error "File not found: $file"
         return 1
     fi
     
-    if [[ ! -r "$file" ]]; then
+    if [ ! -r "$file" ]; then
         shlog error "Cannot read file: $file"
         return 1
     fi
@@ -194,22 +230,20 @@ validate_file_for_tool() {
         *.pdf) file_type="pdf" ;;
         *.zip|*.tar.gz|*.tgz|*.tar) file_type="archive" ;;
         *)
-            if [[ "$mime" == *"Mach-O"* ]]; then
-                file_type="macho"
-            elif [[ "$mime" == *"ELF"* ]]; then
-                file_type="elf"
-            elif [[ "$mime" == *"PE32"* ]]; then
-                file_type="pe"
-            else
-                file_type="unknown"
-            fi
+            case "$mime" in
+                *"Mach-O"*) file_type="macho" ;;
+                *"ELF"*) file_type="elf" ;;
+                *"PE32"*) file_type="pe" ;;
+                *) file_type="unknown" ;;
+            esac
             ;;
     esac
     
-    if [[ "${TOOL_FILE_TYPES[$tool]}" != *"$file_type"* ]]; then
-        shlog error "Tool '$tool' cannot handle file type '$file_type' (detected from: $file)"
-        return 1
-    fi
+    local tool_file_types=$(get_tool_file_types "$tool")
+    case ",$tool_file_types," in
+        *",$file_type,"*) ;;
+        *) shlog error "Tool '$tool' cannot handle file type '$file_type' (detected from: $file)"; return 1 ;;
+    esac
     
     return 0
 }
@@ -222,24 +256,174 @@ install_ghidra() {
     fi
     
     shlog info "Installing Ghidra..."
-    GHIDRA_VERSION="10.4.3"
-    GHIDRA_ZIP="ghidra_${GHIDRA_VERSION}_PUBLIC_20240618.zip"
-    GHIDRA_URL="https://ghidra-sre.org/${GHIDRA_ZIP}"
     GHIDRA_DIR="$LOCAL_SHARE/ghidra"
     
     mkdir -p "$GHIDRA_DIR"
-    curl -L -o "/tmp/${GHIDRA_ZIP}" "$GHIDRA_URL"
-    unzip -q "/tmp/${GHIDRA_ZIP}" -d "$GHIDRA_DIR"
-    GHIDRA_FOLDER=$(find "$GHIDRA_DIR" -maxdepth 1 -type d -name "ghidra_*_PUBLIC" | head -n 1)
     
+    # Ensure JDK is available for Ghidra
+    ensure_jdk_for_ghidra
+    
+    # Get the latest Ghidra download URL
+    shlog info "Fetching latest Ghidra release..."
+    GHIDRA_URL=$(curl -s "https://api.github.com/repos/NationalSecurityAgency/ghidra/releases/latest" | grep -o '"browser_download_url": "[^"]*\.zip"' | head -1 | cut -d'"' -f4)
+    
+    if [ -z "$GHIDRA_URL" ]; then
+        shlog error "Failed to get latest Ghidra download URL"
+        return 1
+    fi
+    
+    # Extract filename from URL
+    GHIDRA_ZIP=$(basename "$GHIDRA_URL")
+    shlog info "Downloading: $GHIDRA_ZIP"
+    
+    # Download with better error handling
+    if ! curl -L -o "/tmp/${GHIDRA_ZIP}" "$GHIDRA_URL"; then
+        shlog error "Failed to download Ghidra"
+        return 1
+    fi
+    
+    # Check if download was successful
+    if [ ! -f "/tmp/${GHIDRA_ZIP}" ] || [ ! -s "/tmp/${GHIDRA_ZIP}" ]; then
+        shlog error "Downloaded file is empty or missing"
+        return 1
+    fi
+    
+    # Extract with error handling
+    if ! unzip -q "/tmp/${GHIDRA_ZIP}" -d "$GHIDRA_DIR"; then
+        shlog error "Failed to extract Ghidra"
+        return 1
+    fi
+    
+    # Find the extracted folder
+    GHIDRA_FOLDER=$(find "$GHIDRA_DIR" -maxdepth 1 -type d -name "ghidra_*_PUBLIC" | head -n 1)
+    if [ -z "$GHIDRA_FOLDER" ]; then
+        shlog error "Could not find Ghidra installation folder"
+        return 1
+    fi
+    
+    # Check if ghidraRun exists
+    if [ ! -f "$GHIDRA_FOLDER/ghidraRun" ]; then
+        shlog error "ghidraRun not found in $GHIDRA_FOLDER"
+        return 1
+    fi
+    
+    # Create wrapper with JDK path
     WRAPPER="$GHIDRA_DIR/ghidra_run.sh"
     cat <<EOF > "$WRAPPER"
 #!/bin/bash
+# Set JAVA_HOME for Ghidra
+export JAVA_HOME="\${JAVA_HOME:-$(get_jdk_home)}"
 exec "$GHIDRA_FOLDER/ghidraRun" "\$@"
 EOF
     chmod +x "$WRAPPER"
     ln -sf "$WRAPPER" "$LOCAL_BIN/ghidra"
+    
+    # Clean up
+    rm -f "/tmp/${GHIDRA_ZIP}"
+    
     shlog info "Ghidra installed successfully"
+}
+
+# Function to ensure JDK is available for Ghidra
+ensure_jdk_for_ghidra() {
+    local jdk_home=$(get_jdk_home)
+    if [ -n "$jdk_home" ]; then
+        export JAVA_HOME="$jdk_home"
+        shlog info "Using JDK at: $jdk_home"
+    else
+        shlog error "No suitable JDK found. Please install OpenJDK or Oracle JDK"
+        return 1
+    fi
+}
+
+# Function to find JDK home directory
+get_jdk_home() {
+    # Check common macOS JDK locations
+    local possible_paths=(
+        "/Library/Java/JavaVirtualMachines/openjdk-21.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-20.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-19.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-18.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-17.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-16.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-15.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-14.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-13.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-12.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-11.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-10.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-9.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-20.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-19.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-18.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-16.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-15.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-14.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-13.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-12.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-11.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-10.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk-8.jdk/Contents/Home"
+        "/Library/Java/JavaVirtualMachines/jdk1.8.0_*.jdk/Contents/Home"
+        "/System/Library/Java/JavaVirtualMachines/1.8.jdk/Contents/Home"
+        "/System/Library/Java/JavaVirtualMachines/1.7.jdk/Contents/Home"
+        "/System/Library/Java/JavaVirtualMachines/1.6.jdk/Contents/Home"
+    )
+    
+    # Check if JAVA_HOME is already set and valid
+    if [ -n "${JAVA_HOME:-}" ] && [ -d "$JAVA_HOME" ] && [ -f "$JAVA_HOME/bin/java" ]; then
+        echo "$JAVA_HOME"
+        return 0
+    fi
+    
+    # Check possible paths
+    for path in "${possible_paths[@]}"; do
+        # Handle glob patterns
+        if [[ "$path" == *"*"* ]]; then
+            for expanded_path in $path; do
+                if [ -d "$expanded_path" ] && [ -f "$expanded_path/bin/java" ]; then
+                    echo "$expanded_path"
+                    return 0
+                fi
+            done
+        else
+            if [ -d "$path" ] && [ -f "$path/bin/java" ]; then
+                echo "$path"
+                return 0
+            fi
+        fi
+    done
+    
+    # Check if java is in PATH and find its home
+    if command -v java >/dev/null 2>&1; then
+        local java_path=$(which java)
+        if [[ "$java_path" == */bin/java ]]; then
+            local java_home="${java_path%/bin/java}"
+            if [ -d "$java_home" ]; then
+                echo "$java_home"
+                return 0
+            fi
+        fi
+    fi
+    
+    # If nothing found, try to install OpenJDK via Homebrew
+    if command -v brew >/dev/null 2>&1; then
+        shlog info "No JDK found, attempting to install OpenJDK via Homebrew..."
+        if brew install openjdk@21; then
+            # Homebrew installs to a specific location, create a symlink
+            local brew_java_home="$(brew --prefix)/opt/openjdk@21"
+            if [ -d "$brew_java_home" ]; then
+                echo "$brew_java_home"
+                return 0
+            fi
+        fi
+    fi
+    
+    return 1
 }
 
 install_jadx() {
@@ -377,9 +561,13 @@ decompile_ghidra() {
     local file="$1"
     local output_dir="${2:-}"
     
-    install_ghidra || return 1
+    if ! install_ghidra; then
+        shlog warn "Ghidra installation failed, falling back to strings extraction"
+        decompile_strings "$file"
+        return 0
+    fi
     
-    if [[ -n "$output_dir" ]]; then
+    if [ -n "$output_dir" ]; then
         shlog info "Launching Ghidra for: $file (output: $output_dir)"
         ghidra "$file" -import "$file" -postScript "$output_dir"
     else
@@ -394,7 +582,7 @@ decompile_jadx() {
     
     install_jadx || return 1
     
-    if [[ -d "$output_dir" && "${force:-false}" != "true" ]]; then
+    if [ -d "$output_dir" ] && [ "${force:-false}" != "true" ]; then
         shlog error "Output directory exists: $output_dir (use --force to overwrite)"
         return 1
     fi
@@ -409,7 +597,7 @@ decompile_jdcli() {
     
     install_jdcli || return 1
     
-    if [[ -d "$output_dir" && "${force:-false}" != "true" ]]; then
+    if [ -d "$output_dir" ] && [ "${force:-false}" != "true" ]; then
         shlog error "Output directory exists: $output_dir (use --force to overwrite)"
         return 1
     fi
@@ -442,7 +630,7 @@ decompile_ilspycmd() {
     
     install_ilspycmd || return 1
     
-    if [[ -d "$output_dir" && "${force:-false}" != "true" ]]; then
+    if [ -d "$output_dir" ] && [ "${force:-false}" != "true" ]; then
         shlog error "Output directory exists: $output_dir (use --force to overwrite)"
         return 1
     fi
@@ -474,7 +662,7 @@ decompile_archive() {
     local file="$1"
     local output_dir="${2:-${file}_extracted}"
     
-    if [[ -d "$output_dir" && "${force:-false}" != "true" ]]; then
+    if [ -d "$output_dir" ] && [ "${force:-false}" != "true" ]; then
         shlog error "Output directory exists: $output_dir (use --force to overwrite)"
         return 1
     fi
@@ -513,24 +701,21 @@ detect_file_type() {
         *.pdf) echo "pdf" ;;
         *.zip|*.tar.gz|*.tgz|*.tar) echo "archive" ;;
         *)
-            if [[ "$mime" == *"Mach-O"* ]]; then
-                echo "macho"
-            elif [[ "$mime" == *"ELF"* ]]; then
-                echo "elf"
-            elif [[ "$mime" == *"PE32"* ]]; then
-                echo "pe"
-            else
-                echo "unknown"
-            fi
+            case "$mime" in
+                *"Mach-O"*) echo "macho" ;;
+                *"ELF"*) echo "elf" ;;
+                *"PE32"*) echo "pe" ;;
+                *) echo "unknown" ;;
+            esac
             ;;
     esac
 }
 
 get_tool_for_file_type() {
     local file_type="$1"
-    local tools="${FILE_TYPE_TOOLS[$file_type]}"
+    local tools=$(get_file_type_tools "$file_type")
     # Return first tool if multiple are available
-    echo "${tools%%,*}"
+    echo "$tools" | cut -d',' -f1
 }
 
 decompile_file() {
@@ -541,13 +726,13 @@ decompile_file() {
     local output_dir="${5:-}"
     
     # Auto-detect file type if not specified
-    if [[ -z "$file_type" ]]; then
+    if [ -z "$file_type" ]; then
         file_type=$(detect_file_type "$file")
         shlog info "Detected file type: $file_type"
     fi
     
     # Auto-select tool if not specified
-    if [[ -z "$tool" ]]; then
+    if [ -z "$tool" ]; then
         tool=$(get_tool_for_file_type "$file_type")
         shlog info "Selected tool: $tool"
     fi
@@ -586,10 +771,10 @@ decompile() {
     mkdir -p "$LOCAL_SHARE"
     
     # Parse arguments
-    while [[ $# -gt 0 ]]; do
+    while [ $# -gt 0 ]; do
         case "$1" in
             --language)
-                if [[ $# -lt 2 ]]; then
+                if [ $# -lt 2 ]; then
                     shlog error "--language requires a value"
                     return 1
                 fi
@@ -597,7 +782,7 @@ decompile() {
                 shift 2
                 ;;
             --tool)
-                if [[ $# -lt 2 ]]; then
+                if [ $# -lt 2 ]; then
                     shlog error "--tool requires a value"
                     return 1
                 fi
@@ -605,7 +790,7 @@ decompile() {
                 shift 2
                 ;;
             --file-type)
-                if [[ $# -lt 2 ]]; then
+                if [ $# -lt 2 ]; then
                     shlog error "--file-type requires a value"
                     return 1
                 fi
@@ -613,7 +798,7 @@ decompile() {
                 shift 2
                 ;;
             --output)
-                if [[ $# -lt 2 ]]; then
+                if [ $# -lt 2 ]; then
                     shlog error "--output requires a value"
                     return 1
                 fi
@@ -630,15 +815,15 @@ decompile() {
                 ;;
             --help|-h)
                 # Validate options before showing help
-                if [[ -n "$language" ]]; then
+                if [ -n "$language" ]; then
                     validate_language "$language" || return 1
                 fi
                 
-                if [[ -n "$tool" ]]; then
+                if [ -n "$tool" ]; then
                     validate_tool "$tool" || return 1
                 fi
                 
-                if [[ -n "$file_type" ]]; then
+                if [ -n "$file_type" ]; then
                     validate_file_type "$file_type" || return 1
                 fi
                 
@@ -654,8 +839,15 @@ decompile() {
                 if ! remaining_args=$(shlog _parse-and-export "$@"); then
                     return 1
                 fi
-                if [[ -n "$remaining_args" ]]; then
-                    if [[ -z "$target" ]]; then
+                if [ -n "$remaining_args" ]; then
+                    if [ -z "$target" ]; then
+                        target="$1"
+                    else
+                        shlog error "Multiple targets not supported: $1"
+                        return 1
+                    fi
+                else
+                    if [ -z "$target" ]; then
                         target="$1"
                     else
                         shlog error "Multiple targets not supported: $1"
@@ -668,15 +860,15 @@ decompile() {
     done
     
     # Validate options
-    if [[ -n "$language" ]]; then
+    if [ -n "$language" ]; then
         validate_language "$language" || return 1
     fi
     
-    if [[ -n "$tool" ]]; then
+    if [ -n "$tool" ]; then
         validate_tool "$tool" || return 1
     fi
     
-    if [[ -n "$file_type" ]]; then
+    if [ -n "$file_type" ]; then
         validate_file_type "$file_type" || return 1
     fi
     
@@ -684,28 +876,28 @@ decompile() {
     validate_compatibility "$language" "$tool" "$file_type" || return 1
     
     # Install-only mode
-    if [[ "$install_only" == "true" ]]; then
+    if [ "$install_only" = "true" ]; then
         shlog info "Installing all tools..."
-        for t in "${!TOOL_LANGUAGES[@]}"; do
+        for t in $(get_supported_tools); do
             install_tool "$t" || shlog warn "Failed to install $t"
         done
         return 0
     fi
     
     # Validate target
-    if [[ -z "$target" ]]; then
+    if [ -z "$target" ]; then
         shlog error "Target file or directory is required"
         decompile_help
         return 1
     fi
     
-    if [[ ! -e "$target" ]]; then
+    if [ ! -e "$target" ]; then
         shlog error "Target does not exist: $target"
         return 1
     fi
     
     # Process target
-    if [[ -d "$target" ]]; then
+    if [ -d "$target" ]; then
         shlog info "Scanning directory: $target"
         find "$target" -type f | while read -r file; do
             echo "---"

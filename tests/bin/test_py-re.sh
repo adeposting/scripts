@@ -96,12 +96,12 @@ shelltest assert_contains "$result" "world test" "split should return remaining 
 # Test: escape command - special characters
 shelltest test_case "escape command - special characters"
 result=$($RE_CMD escape "file[1].txt")
-shelltest assert_contains "$result" "file\\[1\\].txt" "escape should escape special characters"
+shelltest assert_contains "$result" "file\\[1\\]\\.txt" "escape should escape special characters"
 
 # Test: escape command - multiple special characters
 shelltest test_case "escape command - multiple special characters"
 result=$($RE_CMD escape "file*?.txt")
-shelltest assert_contains "$result" "file\\*\\?.txt" "escape should escape multiple special characters"
+shelltest assert_contains "$result" "file\\*\\?\\.txt" "escape should escape multiple special characters"
 
 # Test: compile command - valid pattern
 shelltest test_case "compile command - valid pattern"
@@ -136,18 +136,18 @@ shelltest assert_contains "$result" "WORLD" "split should work with IGNORECASE f
 
 # Test: JSON output
 shelltest test_case "JSON output"
-result=$($RE_CMD match "hello" "hello world" --json)
+result=$($RE_CMD --json match "hello" "hello world")
 shelltest assert_contains "$result" "{" "JSON output should be object"
 shelltest assert_contains "$result" "}" "JSON output should be object"
 
 # Test: dry-run mode
 shelltest test_case "dry-run mode"
-result=$($RE_CMD sub "\\d+" "X" "abc123def456" --dry-run)
+result=$($RE_CMD --dry-run sub "\\d+" "X" "abc123def456")
 shelltest assert_contains "$result" "Would substitute" "dry-run should show what would be done"
 
 # Test: verbose mode
 shelltest test_case "verbose mode"
-result=$($RE_CMD search "world" "hello world" --verbose 2>&1)
+result=$($RE_CMD --verbose search "world" "hello world" 2>&1)
 shelltest assert_contains "$result" "search" "verbose should show command being executed"
 
 # Test: match command - groups

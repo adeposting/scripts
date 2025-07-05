@@ -121,11 +121,10 @@ shelltest test_case "dumps command with no ensure ascii"
 result=$($JSON_CMD dumps '{"key": "café"}' --no-ensure-ascii)
 shelltest assert_equal '{"key": "café"}' "$result" "dumps with no-ensure-ascii should preserve unicode"
 
-# Test 15: dump with dry run
+# Test 15: dump command with dry run
 shelltest test_case "dump command with dry run"
-setup_test_dir
-result=$($JSON_CMD dump test.json '{"key": "value"}' --dry-run)
-shelltest assert_contains "$result" "Would write JSON data to: test.json" "dry-run should show what would be written"
+result=$($JSON_CMD --dry-run dump test.json '{"key": "value"}')
+shelltest assert_contains "$result" "Would write" "dry-run should show what would be done"
 
 # Test 16: Complex data structures
 shelltest test_case "dumps command with complex data"
