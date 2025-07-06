@@ -170,6 +170,43 @@ shelltest test_case "encrypt logging options"
 output=$(encrypt --help 2>&1)
 shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle logging options"
 
+# Test: encrypt with --quiet option
+shelltest test_case "encrypt with --quiet option"
+output=$(encrypt --quiet --help 2>&1)
+shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle --quiet option"
+
+# Test: encrypt with --verbose option
+shelltest test_case "encrypt with --verbose option"
+output=$(encrypt --verbose --help 2>&1)
+shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle --verbose option"
+
+# Test: encrypt with --log-level option
+shelltest test_case "encrypt with --log-level option"
+output=$(encrypt --log-level debug --help 2>&1)
+shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle --log-level option"
+
+# Test: encrypt with --log-file option
+shelltest test_case "encrypt with --log-file option"
+temp_file=$(mktemp)
+output=$(encrypt --log-file "$temp_file" --help 2>&1)
+shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle --log-file option"
+rm -f "$temp_file"
+
+# Test: encrypt with mixed logging options
+shelltest test_case "encrypt with mixed logging options"
+output=$(encrypt --quiet --log-level info --help 2>&1)
+shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle mixed logging options"
+
+# Test: encrypt with invalid logging option
+shelltest test_case "encrypt with invalid logging option"
+output=$(encrypt --log-level 2>&1)
+shelltest assert_contains "$output" "--log-level requires a value" "encrypt should error on invalid logging option"
+
+# Test: encrypt with unknown option after logging options
+shelltest test_case "encrypt with unknown option after logging options"
+output=$(encrypt --quiet --unknown-option 2>&1)
+shelltest assert_contains "$output" "Unknown argument" "encrypt should error on unknown option after logging options"
+
 # Test: encrypt temporary directory handling (mock test)
 shelltest test_case "encrypt temporary directory handling"
 # Test that encrypt can handle temporary directories
