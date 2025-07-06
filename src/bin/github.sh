@@ -4,36 +4,36 @@
 set -oue pipefail
 
 github_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "github.sh - GitHub repository management utility"
     echo
     echo "  Usage: $0 <command> [OPTIONS]"
     echo
     echo "Commands:"
-    echo "  create-repos <options>    → create GitHub repositories"
-    echo "  delete-repos <options>    → delete GitHub repositories"
+    echo "  create-repos [OPTIONS]    → create multiple repositories"
+    echo "  delete-repos [OPTIONS]    → delete multiple repositories"
     echo "  help, --help, -h          → show this help text"
     echo
     echo "Create Repos Options:"
-    echo "  --repos <repo>...         → one or more repo names (with or without owner prefix)"
-    echo "  --user <username>         → default GitHub username (used if repo has no owner prefix)"
-    echo "  --license <license>       → license to apply (default: MIT)"
-    echo "  --branch <name>           → create branch after repo creation"
+    echo "  --user <username>         GitHub username (defaults to git config)"
+    echo "  --license <type>          license type (default: MIT)"
+    echo "  --branch <name>           default branch name (default: main)"
+    echo "  --repos <name>...         space-separated list of repository names"
     echo
     echo "Delete Repos Options:"
-    echo "  --repos <repo>...         → one or more repo names (with or without owner prefix)"
-    echo "  --user <username>         → default GitHub username (used if repo has no owner prefix)"
-    echo "  --force                   → skip confirmation prompt"
+    echo "  --user <username>         GitHub username (defaults to git config)"
+    echo "  --force                   skip confirmation prompts"
+    echo "  --repos <name>...         space-separated list of repository names"
     echo
-    _shlog_print_common_help
+    shlog _print-common-help
     echo
     echo "Examples:"
-    echo "  $0 create-repos --repos my-repo --user myusername"
-    echo "  $0 create-repos --repos org/repo1 org/repo2 --license Apache-2.0"
-    echo "  $0 delete-repos --repos old-repo --user myusername --force"
+    echo "  $0 create-repos --user myuser --repos repo1 repo2 repo3"
+    echo "  $0 create-repos --license Apache-2.0 --repos myproject"
+    echo "  $0 delete-repos --user myuser --force --repos oldrepo1 oldrepo2"
     echo
-    color reset
+    shlog _end-help-text
 }
 
 github_create_repos() {
@@ -41,7 +41,6 @@ github_create_repos() {
     local LICENSE="MIT"
     local BRANCH_NAME=""
     local REPOS=()
-    local shlog_args=()
     
     # Parse arguments
     while [[ "$#" -gt 0 ]]; do
@@ -77,18 +76,21 @@ github_create_repos() {
                     shift
                 done
                 ;;
-            --quiet|--verbose|--log-level|--log-file)
-                shlog_args+=("$1")
-                if [[ "$1" == "--log-level" || "$1" == "--log-file" ]]; then
-                    shlog_args+=("$2")
-                    shift 2
-                else
-                    shift
-                fi
-                ;;
             --help|-h)
                 github_help
                 return 0
+                ;;
+            --*)
+                # Let shlog handle logging options automatically
+                local remaining_args
+                if ! remaining_args=$(shlog _parse-and-export "$@"); then
+                    return 1
+                fi
+                if [[ -n "$remaining_args" ]]; then
+                    echo "Error: Unknown argument: $1" >&2
+                    return 1
+                fi
+                break
                 ;;
             *)
                 echo "Error: Unknown argument: $1" >&2
@@ -96,14 +98,6 @@ github_create_repos() {
                 ;;
         esac
     done
-    
-    # Parse logging options
-    if [[ ${#shlog_args[@]} -gt 0 ]]; then
-        local remaining_shlog_args
-        if ! remaining_shlog_args=$(shlog _parse-options "${shlog_args[@]}"); then
-            return 1
-        fi
-    fi
     
     if [[ "${#REPOS[@]}" -eq 0 ]]; then
         echo "Error: --repos must be provided with one or more space-separated repo names." >&2
@@ -184,7 +178,6 @@ github_delete_repos() {
     local DEFAULT_USER=""
     local FORCE=false
     local REPOS=()
-    local shlog_args=()
     
     # Parse arguments
     while [[ "$#" -gt 0 ]]; do
@@ -208,18 +201,21 @@ github_delete_repos() {
                     shift
                 done
                 ;;
-            --quiet|--verbose|--log-level|--log-file)
-                shlog_args+=("$1")
-                if [[ "$1" == "--log-level" || "$1" == "--log-file" ]]; then
-                    shlog_args+=("$2")
-                    shift 2
-                else
-                    shift
-                fi
-                ;;
             --help|-h)
                 github_help
                 return 0
+                ;;
+            --*)
+                # Let shlog handle logging options automatically
+                local remaining_args
+                if ! remaining_args=$(shlog _parse-and-export "$@"); then
+                    return 1
+                fi
+                if [[ -n "$remaining_args" ]]; then
+                    echo "Error: Unknown argument: $1" >&2
+                    return 1
+                fi
+                break
                 ;;
             *)
                 echo "Error: Unknown argument: $1" >&2
@@ -227,14 +223,6 @@ github_delete_repos() {
                 ;;
         esac
     done
-    
-    # Parse logging options
-    if [[ ${#shlog_args[@]} -gt 0 ]]; then
-        local remaining_shlog_args
-        if ! remaining_shlog_args=$(shlog _parse-options "${shlog_args[@]}"); then
-            return 1
-        fi
-    fi
     
     if [[ "${#REPOS[@]}" -eq 0 ]]; then
         echo "Error: --repos must be provided with one or more space-separated repo names." >&2

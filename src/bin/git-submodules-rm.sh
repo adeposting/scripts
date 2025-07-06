@@ -3,7 +3,7 @@
 set -oue pipefail
 
 git_submodules_rm_help() {
-  color set bright-white
+  shlog _begin-help-text
   echo
   echo "git-submodules-rm.sh"
   echo
@@ -13,7 +13,7 @@ git_submodules_rm_help() {
   echo "  <submodule>...    → one or more submodule paths to remove"
   echo "  help, --help, -h  → show this help text"
   echo
-  color reset
+  shlog _end-help-text
 }
 
 git_submodules_rm() {

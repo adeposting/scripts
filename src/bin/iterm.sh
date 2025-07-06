@@ -3,15 +3,20 @@
 set -oue pipefail
 
 iterm_help() {
-  color set bright-white
+  shlog _begin-help-text
   echo
   echo "iterm.sh"
-  echo "  Usage: $0 [command...]"
+  echo
+  echo "  Usage: $0 <command>"
   echo
   echo "Arguments:"
-  echo "  [command...]   → optional command(s) to run in the current directory"
+  echo "  <command>                command to run in iTerm2"
   echo
-  color reset
+  echo "Commands:"
+  echo "  profile <name>           → set iTerm2 profile"
+  echo "  help, --help, -h         → show this help text"
+  echo
+  shlog _end-help-text
 }
 
 iterm() {

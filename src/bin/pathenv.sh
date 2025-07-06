@@ -3,11 +3,10 @@
 set -euo pipefail
 
 pathenv_help() {
-  if command -v color >/dev/null 2>&1; then
-    color set bright-white
-  fi
+  shlog _begin-help-text
   echo
   echo "pathenv.sh"
+  echo
   echo "  Usage: $0 <command> [args...]"
   echo
   echo "Commands:"
@@ -16,9 +15,7 @@ pathenv_help() {
   echo "  contains <dir>          → check if directory is on PATH"
   echo "  help, --help, -h        → show this help text"
   echo
-  if command -v color >/dev/null 2>&1; then
-    color reset
-  fi
+  shlog _end-help-text
 }
 
 get_path_env() {

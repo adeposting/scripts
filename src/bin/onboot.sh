@@ -3,29 +3,24 @@
 set -oue pipefail
 
 onboot_help() {
-  color set bright-white
-  echo
-  echo "onboot.sh"
-  echo
-  echo "  Run system-specific startup tasks at boot time."
-  echo
-  echo "Usage:"
-  echo "  $0"
-  echo
-  echo "Behavior:"
-  echo "  Automatically detects the OS and runs appropriate startup tasks:"
-  echo "    → macOS (Darwin): unloads problematic LaunchAgents, starts GUI/terminal apps"
-  echo "    → Linux: currently a stub (logs execution only)"
-  echo
-  echo "macOS tasks (Darwin):"
-  echo "  - Unloads known problematic LaunchAgents (e.g. Canon EWCService)"
-  echo "  - Starts selected startup GUI applications (e.g. Amethyst)"
-  echo "  - Starts selected startup terminal applications (e.g. nvim)"
-  echo
-  echo "Linux tasks:"
-  echo "  - Currently a stub (logs execution only)"
-  echo
-  color reset
+    shlog _begin-help-text
+    echo
+    echo "onboot.sh"
+    echo
+    echo "  Usage: $0 <command> [args...]"
+    echo
+    echo "Commands:"
+    echo "  add <script>             → add script to run on boot"
+    echo "  remove <script>          → remove script from boot sequence"
+    echo "  list                     → list all scripts in boot sequence"
+    echo "  help, --help, -h         → show this help text"
+    echo
+    echo "Behavior:"
+    echo "  When run without arguments, performs startup tasks based on OS:"
+    echo "  - macOS/Darwin: Unloads plist files, launches GUI and terminal apps"
+    echo "  - Linux: Performs Linux-specific startup tasks"
+    echo
+    shlog _end-help-text
 }
 
 onboot_darwin() {

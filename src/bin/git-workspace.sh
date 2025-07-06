@@ -3,19 +3,17 @@
 set -oue pipefail
 
 git_workspace_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "git-workspace.sh"
     echo
-    echo "  Usage: $0 [--sync|-s] [WORKSPACE_PATH]"
+    echo "  Usage: $0 [OPTIONS]"
     echo
     echo "Options:"
-    echo "  --sync, -s      Sync all git repositories in the workspace"
-    echo "  --help, -h      Show this help message"
+    echo "  -s, --sync [workspace]   → sync workspace repositories"
+    echo "  -h, --help               → show this help text"
     echo
-    echo "Environment:"
-    echo "  GIT_WORKSPACE_HOME can be used instead of passing the workspace path"
-    color reset
+    shlog _end-help-text
 }
 
 trap 'git_workspace_help; exit 1' ERR

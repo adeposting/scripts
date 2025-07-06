@@ -3,7 +3,7 @@
 set -oue pipefail
 
 installer_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "installer.sh"
     echo
@@ -15,7 +15,7 @@ installer_help() {
     echo "Arguments:"
     echo "  <package>...            one or more packages to install"
     echo
-    color reset
+    shlog _end-help-text
 }
 
 installer() {

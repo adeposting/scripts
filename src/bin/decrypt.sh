@@ -4,7 +4,7 @@
 set -oue pipefail
 
 decrypt_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "decrypt.sh - File decryption utility"
     echo
@@ -19,14 +19,14 @@ decrypt_help() {
     echo "  --extract               extract the archive after decryption"
     echo "  --recipient <email>     GPG recipient email (optional)"
     echo
-    _shlog_print_common_help
+    shlog _print-common-help
     echo
     echo "Examples:"
     echo "  $0 --input encrypted.tar.gz.gpg --output decrypted.tar.gz"
     echo "  $0 --input backup.tar.gz.gpg --output backup.tar.gz --extract"
     echo "  $0 --input file.tar.gz.gpg --output file.tar.gz --recipient user@example.com"
     echo
-    color reset
+    shlog _end-help-text
 }
 
 decrypt() {
@@ -34,7 +34,6 @@ decrypt() {
     local output=""
     local extract=false
     local recipient=""
-    local shlog_args=()
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -67,34 +66,25 @@ decrypt() {
                 recipient="$2"
                 shift 2
                 ;;
-            --quiet|--verbose|--log-level|--log-file)
-                shlog_args+=("$1")
-                if [[ "$1" == "--log-level" || "$1" == "--log-file" ]]; then
-                    shlog_args+=("$2")
-                    shift 2
-                else
-                    shift
-                fi
-                ;;
             --help|-h)
                 decrypt_help
                 return 0
                 ;;
             *)
-                echo "Error: Unknown argument: $1" >&2
-                decrypt_help
-                return 1
+                # Let shlog handle logging options automatically
+                local remaining_args
+                if ! remaining_args=$(shlog _parse-and-export "$@"); then
+                    return 1
+                fi
+                if [[ -n "$remaining_args" ]]; then
+                    echo "Error: Unknown argument: $1" >&2
+                    decrypt_help
+                    return 1
+                fi
+                break
                 ;;
         esac
     done
-    
-    # Parse logging options
-    if [[ ${#shlog_args[@]} -gt 0 ]]; then
-        local remaining_shlog_args
-        if ! remaining_shlog_args=$(shlog _parse-options "${shlog_args[@]}"); then
-            return 1
-        fi
-    fi
     
     # Validate required arguments
     if [[ -z "$input" ]]; then

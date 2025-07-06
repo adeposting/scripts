@@ -3,6 +3,7 @@
 set -oue pipefail
 
 color_help() {
+    shlog _begin-help-text
     echo
     echo "color.sh"
     echo "  Usage: $0 <command> [args...]"
@@ -16,6 +17,7 @@ color_help() {
     echo "  cat <color> <file>     → cat a file with colored output"
     echo "  help, --help, -h       → show this help text"
     echo
+    shlog _end-help-text
 }
 
 get_color() {

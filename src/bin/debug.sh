@@ -4,7 +4,7 @@
 set -oue pipefail
 
 debug_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "debug.sh"
     echo
@@ -19,7 +19,7 @@ debug_help() {
     echo "Environment:"
     echo "  DEBUG                  → set to any non-empty value to enable debug mode"
     echo
-    color reset
+    shlog _end-help-text
 }
 
 debug_enable() {

@@ -4,7 +4,7 @@
 set -oue pipefail
 
 unlinker_help() {
-    color set bright-white
+    shlog _begin-help-text
     echo
     echo "unlinker.sh - Remove symlinks and clean up broken links"
     echo
@@ -46,7 +46,7 @@ unlinker_help() {
     echo "  $0 --source ~/config --no-hidden       # unlink from source, exclude hidden"
     echo "  $0 --destination ~/.config --dry-run   # simulate cleanup"
     echo
-    color reset
+    shlog _end-help-text
 }
 
 unlinker() {
@@ -54,7 +54,6 @@ unlinker() {
     local destination=""
     local dry_run=false
     local lister_args=()
-    local shlog_args=()
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -90,34 +89,30 @@ unlinker() {
                     shift
                 fi
                 ;;
-            --quiet|--verbose|--log-level|--log-file)
-                shlog_args+=("$1")
-                if [[ "$1" == "--log-level" || "$1" == "--log-file" ]]; then
-                    shlog_args+=("$2")
-                    shift 2
-                else
-                    shift
-                fi
-                ;;
             --help|-h)
                 unlinker_help
                 return 0
                 ;;
+            --*)
+                # Let shlog handle logging options automatically
+                local remaining_args
+                if ! remaining_args=$(shlog _parse-and-export "$@"); then
+                    return 1
+                fi
+                if [[ -n "$remaining_args" ]]; then
+                    echo "Error: Unknown option: $1" >&2
+                    unlinker_help
+                    return 1
+                fi
+                break
+                ;;
             *)
-                echo "Error: Unknown option: $1" >&2
+                echo "Error: Unknown argument: $1" >&2
                 unlinker_help
                 return 1
                 ;;
         esac
     done
-    
-    # Parse logging options
-    if [[ ${#shlog_args[@]} -gt 0 ]]; then
-        local remaining_shlog_args
-        if ! remaining_shlog_args=$(shlog _parse-options "${shlog_args[@]}"); then
-            return 1
-        fi
-    fi
     
     # Validate that at least one directory is specified
     if [[ -z "$source" && -z "$destination" ]]; then
