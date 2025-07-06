@@ -21,6 +21,7 @@ CURRENT_TEST=""
 TEST_SUITE=""
 TEST_START_TIME=0
 TEST_END_TIME=0
+ERROR_LOG_FILE=""
 
 # State file for persistence between subprocesses
 SHELLTEST_STATE_FILE=""
@@ -32,7 +33,13 @@ test_init() {
     FAIL_COUNT=0
     SKIP_COUNT=0
     TEST_START_TIME=$(date +%s)
+    ERROR_LOG_FILE="error.log"
+    local -r test_script="$1"
+    # Clear the error log file at the start of each test run
+    echo "=== $(date): $test_script ===" >> "$ERROR_LOG_FILE"
+    
     echo "[INFO] Test framework initialized"
+    echo "[INFO] Error log file: $ERROR_LOG_FILE"
 }
 
 # Start a test suite
@@ -67,6 +74,18 @@ test_fail() {
     fi
     if command -v shlog >/dev/null 2>&1; then
         shlog error "Test failed: $CURRENT_TEST - $message"
+    fi
+    
+    # Write failed test to error log file
+    if [[ -n "$ERROR_LOG_FILE" ]]; then
+        {
+            echo "=== FAILED TEST ==="
+            echo "Suite: $TEST_SUITE"
+            echo "Test: $CURRENT_TEST"
+            echo "Error: $message"
+            echo "Timestamp: $(date)"
+            echo "---"
+        } >> "$ERROR_LOG_FILE"
     fi
     
     # Exit immediately on test failure
@@ -306,6 +325,18 @@ assert_function_exists() {
     fi
 }
 
+assert_matches() {
+    local value="$1"
+    local pattern="$2"
+    local message="${3:-}"
+    
+    if [[ "$value" =~ $pattern ]]; then
+        test_pass
+    else
+        test_fail "Value should match pattern (value: '$value', pattern: '$pattern')${message:+ - $message}"
+    fi
+}
+
 # Print test summary
 test_summary() {
     TEST_END_TIME=$(date +%s)
@@ -323,6 +354,9 @@ test_summary() {
         exit 0
     else
         echo -e "\nSome tests failed!"
+        if [[ -n "$ERROR_LOG_FILE" && -f "$ERROR_LOG_FILE" ]]; then
+            echo -e "Failed test details have been written to: $ERROR_LOG_FILE"
+        fi
         exit 1
     fi
 }
@@ -337,7 +371,7 @@ run_test_script() {
     fi
     
     # Initialize test framework
-    test_init
+    test_init "$test_script"
     
     # Set up environment for the test script
     export SHELLTEST_SCRIPT_DIR="$(dirname "$test_script")"
@@ -420,6 +454,9 @@ run_test_script() {
             assert_function_exists)
                 assert_function_exists "${2:-}" "${3:-}"
                 ;;
+            assert_matches)
+                assert_matches "${2:-}" "${3:-}" "${4:-}"
+                ;;
             test_summary)
                 test_summary
                 ;;
@@ -480,6 +517,7 @@ main() {
             echo "  shelltest assert_directory_not_exists <dir> <msg> Assert directory does not exist"
             echo "  shelltest assert_true <value> <msg>             Assert value is true"
             echo "  shelltest assert_false <value> <msg>            Assert value is false"
+            echo "  shelltest assert_matches <value> <pattern> <msg> Assert value matches regex pattern"
             echo "  shelltest test_summary           Print test summary and exit"
             exit 1
             ;;
