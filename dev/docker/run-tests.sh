@@ -5,8 +5,9 @@
 
 set -e
 
-# Set up environment - add src/bin to PATH so scripts.sh is available
+# Set up environment - add dev/bin to PATH for script management
 export SCRIPTS_REPO_ROOT_DIR="/home/docker/scripts"
+export PATH="/home/docker/scripts/dev/bin:$PATH"
 export PATH="/home/docker/scripts/src/bin:$PATH"
 export PATH="/home/docker/scripts/dist/bin:$PATH"
 
@@ -15,19 +16,19 @@ cd /home/docker/scripts
 
 # Build first to ensure we have dist/bin
 echo "=== Building scripts distribution ==="
-if scripts.sh build; then
+if build.sh; then
     echo "Build completed successfully"
 else
     echo "Build failed"
     exit 1
 fi
 
-# Run bootstrap to set up environment and create symlinks
-echo "=== Running bootstrap ==="
-if scripts.sh bootstrap; then
-    echo "Bootstrap completed successfully"
+# Run init to set up environment and create symlinks
+echo "=== Running init ==="
+if init.sh; then
+    echo "Init completed successfully"
 else
-    echo "Bootstrap failed"
+    echo "Init failed"
     exit 1
 fi
 
@@ -48,9 +49,9 @@ echo "" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
 # Make scripts executable
 chmod +x src/bin/*.sh tests/bin/*.sh 2>&1 | tee -a "$LOG_STDOUT" "$LOG_STDERR"
 
-# Run init
-echo "=== Running init ===" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
-if scripts.sh init 2>&1 | tee -a "$LOG_STDOUT" "$LOG_STDERR"; then
+# Run init (already done above, but run again for logging)
+echo "=== Running init (logging) ===" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
+if init.sh 2>&1 | tee -a "$LOG_STDOUT" "$LOG_STDERR"; then
     echo "Init completed successfully" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
 else
     echo "Init failed" | tee -a "$LOG_STDOUT" "$LOG_STDERR"
