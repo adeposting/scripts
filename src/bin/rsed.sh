@@ -4,25 +4,44 @@
 set -euo pipefail
 
 rsed_help() {
-    if command -v color >/dev/null 2>&1; then
-        color set bright-white
-    fi
+    shlog _begin-help-text
     echo
-    echo "rsed.sh"
-    echo "  Usage: $0 [options] <sed-script> [path ...]"
+    echo "rsed.sh - Recursive sed utility"
     echo
-    echo "Recursive sed utility for batch editing files."
+    echo "  Usage: $0 <sed-script> [OPTIONS]"
+    echo
+    echo "Description:"
+    echo "  Applies sed script to files recursively. By default: recursive, includes hidden files, respects .gitignore"
     echo
     echo "Options:"
-    echo "  -i[SUFFIX]   → edit files in place (optionally create backup)"
-    echo "  --include    → only include files matching pattern"
-    echo "  --exclude    → exclude files matching pattern"
-    echo "  --no-hidden  → skip hidden files"
-    echo "  -h, --help   → show this help text"
+    echo "  -n, --quiet, --silent    suppress automatic printing of pattern space"
+    echo "  --debug                  enable debug mode"
+    echo "  -i[SUFFIX], --in-place[=SUFFIX]  edit files in place (makes backup if SUFFIX supplied)"
+    echo "  -l N, --line-length=N    specify the desired line-wrap length for the 'l' command"
+    echo "  --posix                  disable all GNU extensions"
+    echo "  -u, --unbuffered         load minimal amounts of data from the input files and flush"
+    echo "  -z, --null-data          separate lines by NUL characters"
     echo
-    if command -v color >/dev/null 2>&1; then
-        color reset
+    if command -v lister >/dev/null 2>&1; then
+        lister _print-common-help
+    else
+        echo "File Selection Options:"
+        echo "  --include PATTERN       include files matching pattern"
+        echo "  --exclude PATTERN       exclude files matching pattern"
+        echo "  --no-hidden             exclude hidden files"
+        echo "  --no-gitignore          don't respect .gitignore"
+        echo "  --no-recursive          don't search recursively"
+        echo "  --follow-symlinks       follow symbolic links"
     fi
+    echo
+    shlog _print-common-help
+    echo
+    echo "Examples:"
+    echo "  $0 's/old/new/g'                    # replace 'old' with 'new' in all files"
+    echo "  $0 -i '.bak' 's/old/new/g'          # replace with backup"
+    echo "  $0 --include '\\.txt$' 's/old/new/g' # only in .txt files"
+    echo
+    shlog _end-help-text
 }
 
 # --- Detect and configure sed implementation ---
@@ -107,7 +126,6 @@ rsed() {
     local QUIET=""
     local DEBUG=""
     local lister_args=()
-    local shlog_args=()
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -161,23 +179,22 @@ rsed() {
                     shift
                 fi
                 ;;
-            --quiet-log|--verbose-log|--log-level|--log-file)
-                shlog_args+=("$1")
-                if [[ "$1" == "--log-level" || "$1" == "--log-file" ]]; then
-                    shlog_args+=("$2")
-                    shift 2
-                else
-                    shift
-                fi
-                ;;
             --help|-h)
                 rsed_help
                 return 0
                 ;;
-            -*)
-                echo "Error: Unknown option $1" >&2
-                rsed_help
-                return 1
+            --*)
+                # Let shlog handle logging options automatically
+                local remaining_args
+                if ! remaining_args=$(shlog _parse-and-export "$@"); then
+                    return 1
+                fi
+                if [[ -n "$remaining_args" ]]; then
+                    echo "Error: Unknown option $1" >&2
+                    rsed_help
+                    return 1
+                fi
+                break
                 ;;
             *)
                 if [[ -z "$script" ]]; then
@@ -190,14 +207,6 @@ rsed() {
                 ;;
         esac
     done
-    
-    # Parse logging options
-    if [[ ${#shlog_args[@]} -gt 0 ]]; then
-        local remaining_shlog_args
-        if ! remaining_shlog_args=$(shlog _parse-options "${shlog_args[@]}"); then
-            return 1
-        fi
-    fi
     
     # Check if script was provided
     if [[ -z "$script" ]]; then
