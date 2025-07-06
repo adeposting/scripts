@@ -23,21 +23,21 @@ shelltest assert_contains "$output" "CSV CLI" "help should show CSV CLI descript
 
 # Test: read command
 shelltest test_case "read command"
-result=$($CSV_CMD read "$TEST_CSV" --json)
+result=$($CSV_CMD --json read "$TEST_CSV")
 shelltest assert_contains "$result" '"name"' "read should return column names"
 shelltest assert_contains "$result" '"Alice"' "read should return data"
 shelltest assert_contains "$result" '"Bob"' "read should return all rows"
 
 # Test: read with specific columns
 shelltest test_case "read with specific columns"
-result=$($CSV_CMD read "$TEST_CSV" --columns name,age --json)
+result=$($CSV_CMD --json read "$TEST_CSV" --columns name,age)
 shelltest assert_contains "$result" '"name"' "read should include specified columns"
 shelltest assert_contains "$result" '"age"' "read should include specified columns"
 shelltest assert_not_contains "$result" '"city"' "read should exclude unspecified columns"
 
 # Test: read with row limit
 shelltest test_case "read with row limit"
-result=$($CSV_CMD read "$TEST_CSV" --limit 2 --json)
+result=$($CSV_CMD --json read "$TEST_CSV" --limit 2)
 # Count the number of data rows (excluding header info)
 row_count=$(echo "$result" | grep -o '"name"' | wc -l)
 shelltest assert_equal "$row_count" "2" "read should limit to specified number of rows"
@@ -53,14 +53,14 @@ rm -f "$output_file"
 
 # Test: filter command
 shelltest test_case "filter command"
-result=$($CSV_CMD filter "$TEST_CSV" --condition "age > 25" --json)
+result=$($CSV_CMD --json filter "$TEST_CSV" --condition "age > 25")
 shelltest assert_contains "$result" '"Alice"' "filter should include matching rows"
 shelltest assert_contains "$result" '"Charlie"' "filter should include matching rows"
 shelltest assert_not_contains "$result" '"Bob"' "filter should exclude non-matching rows"
 
 # Test: sort command
 shelltest test_case "sort command"
-result=$($CSV_CMD sort "$TEST_CSV" --column age --json)
+result=$($CSV_CMD --json sort "$TEST_CSV" --column age)
 # Extract ages and check they're sorted
 ages=$(echo "$result" | grep -o '"age": "[0-9]*"' | cut -d'"' -f4)
 first_age=$(echo "$ages" | head -n1)
@@ -69,13 +69,13 @@ shelltest assert_less_than_or_equal "$first_age" "$second_age" "sort should sort
 
 # Test: head command
 shelltest test_case "head command"
-result=$($CSV_CMD head "$TEST_CSV" --lines 2 --json)
+result=$($CSV_CMD --json head "$TEST_CSV" --lines 2)
 row_count=$(echo "$result" | grep -o '"name"' | wc -l)
 shelltest assert_equal "$row_count" "2" "head should return specified number of lines"
 
 # Test: tail command
 shelltest test_case "tail command"
-result=$($CSV_CMD tail "$TEST_CSV" --lines 2 --json)
+result=$($CSV_CMD --json tail "$TEST_CSV" --lines 2)
 row_count=$(echo "$result" | grep -o '"name"' | wc -l)
 shelltest assert_equal "$row_count" "2" "tail should return specified number of lines"
 
@@ -86,21 +86,21 @@ shelltest assert_equal "$result" "3" "count should return correct number of rows
 
 # Test: columns command
 shelltest test_case "columns command"
-result=$($CSV_CMD columns "$TEST_CSV" --json)
+result=$($CSV_CMD --json columns "$TEST_CSV")
 shelltest assert_contains "$result" '"name"' "columns should return column names"
 shelltest assert_contains "$result" '"age"' "columns should return column names"
 shelltest assert_contains "$result" '"city"' "columns should return column names"
 
 # Test: unique command
 shelltest test_case "unique command"
-result=$($CSV_CMD unique "$TEST_CSV" --column city --json)
+result=$($CSV_CMD --json unique "$TEST_CSV" --column city)
 # Should have 3 unique cities
 city_count=$(echo "$result" | grep -o '"city"' | wc -l)
 shelltest assert_equal "$city_count" "3" "unique should return unique values"
 
 # Test: group command
 shelltest test_case "group command"
-result=$($CSV_CMD group "$TEST_CSV" --column city --json)
+result=$($CSV_CMD --json group "$TEST_CSV" --column city)
 shelltest assert_contains "$result" '"New York"' "group should group by specified column"
 shelltest assert_contains "$result" '"Los Angeles"' "group should group by specified column"
 
@@ -112,7 +112,7 @@ echo "name,salary" > "$TEST_CSV2"
 echo "Alice,50000" >> "$TEST_CSV2"
 echo "Bob,45000" >> "$TEST_CSV2"
 
-result=$($CSV_CMD merge "$TEST_CSV" "$TEST_CSV2" --on name --json)
+result=$($CSV_CMD --json merge "$TEST_CSV" "$TEST_CSV2" --on name)
 shelltest assert_contains "$result" '"salary"' "merge should include columns from both files"
 shelltest assert_contains "$result" '"50000"' "merge should include data from both files"
 
@@ -120,18 +120,18 @@ rm -f "$TEST_CSV2"
 
 # Test: validate command
 shelltest test_case "validate command"
-result=$($CSV_CMD validate "$TEST_CSV" --json)
+result=$($CSV_CMD --json validate "$TEST_CSV")
 shelltest assert_contains "$result" '"valid"' "validate should return validation status"
 
 # Test: stats command
 shelltest test_case "stats command"
-result=$($CSV_CMD stats "$TEST_CSV" --json)
+result=$($CSV_CMD --json stats "$TEST_CSV")
 shelltest assert_contains "$result" '"rows"' "stats should return row count"
 shelltest assert_contains "$result" '"columns"' "stats should return column count"
 
 # Test: sample command
 shelltest test_case "sample command"
-result=$($CSV_CMD sample "$TEST_CSV" --size 2 --json)
+result=$($CSV_CMD --json sample "$TEST_CSV" --size 2)
 row_count=$(echo "$result" | grep -o '"name"' | wc -l)
 shelltest assert_equal "$row_count" "2" "sample should return specified number of rows"
 

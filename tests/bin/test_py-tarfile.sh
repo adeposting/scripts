@@ -24,27 +24,27 @@ shelltest assert_contains "$output" "Tarfile CLI" "help should show Tarfile CLI 
 # Test: create tar archive
 shelltest test_case "create tar archive"
 archive="test_archive.tar"
-result=$($TARFILE_CMD create "$archive" "$TEST_FILE" "$TEST_DIR")
+result=$($TARFILE_CMD create-archive "$archive" "$TEST_FILE" "$TEST_DIR")
 shelltest assert_file_exists "$archive" "create should create tar archive"
 shelltest assert_not_empty "$result" "create should return success message"
 
 # Test: create gzipped tar archive
 shelltest test_case "create gzipped tar archive"
 gzip_archive="test_archive.tar.gz"
-result=$($TARFILE_CMD create "$gzip_archive" "$TEST_FILE" --compress gzip)
+result=$($TARFILE_CMD create-archive "$gzip_archive" "$TEST_FILE" --compress gzip)
 shelltest assert_file_exists "$gzip_archive" "create should create gzipped tar archive"
 shelltest assert_not_empty "$result" "create should return success message"
 
 # Test: create bzipped tar archive
 shelltest test_case "create bzipped tar archive"
 bzip_archive="test_archive.tar.bz2"
-result=$($TARFILE_CMD create "$bzip_archive" "$TEST_FILE" --compress bzip2)
+result=$($TARFILE_CMD create-archive "$bzip_archive" "$TEST_FILE" --compress bzip2)
 shelltest assert_file_exists "$bzip_archive" "create should create bzipped tar archive"
 shelltest assert_not_empty "$result" "create should return success message"
 
 # Test: list archive contents
 shelltest test_case "list archive contents"
-result=$($TARFILE_CMD list "$archive" --json)
+result=$($TARFILE_CMD --json list "$archive")
 shelltest assert_contains "$result" '"name"' "list should return member names"
 shelltest assert_contains "$result" '"size"' "list should return member sizes"
 shelltest assert_contains "$result" '"mtime"' "list should return modification times"
@@ -68,7 +68,7 @@ shelltest assert_file_exists "$specific_extract_dir/$TEST_FILE" "extract should 
 
 # Test: get archive info
 shelltest test_case "get archive info"
-result=$($TARFILE_CMD info "$archive" --json)
+result=$($TARFILE_CMD --json info "$archive")
 shelltest assert_contains "$result" '"format"' "info should return format information"
 shelltest assert_contains "$result" '"compression"' "info should return compression information"
 shelltest assert_contains "$result" '"members"' "info should return member count"
@@ -110,18 +110,18 @@ shelltest assert_greater_than "0" "$result" "get-uncompressed-size should return
 
 # Test: find member in archive
 shelltest test_case "find member in archive"
-result=$($TARFILE_CMD find-member "$archive" "$TEST_FILE" --json)
+result=$($TARFILE_CMD --json find-member "$archive" "$TEST_FILE")
 shelltest assert_contains "$result" '"found"' "find-member should return search result"
 shelltest assert_contains "$result" '"member"' "find-member should return member information"
 
 # Test: find non-existent member
 shelltest test_case "find non-existent member"
-result=$($TARFILE_CMD find-member "$archive" "nonexistent.txt" --json)
+result=$($TARFILE_CMD --json find-member "$archive" "nonexistent.txt")
 shelltest assert_contains "$result" '"found": false' "find-member should return false for non-existent member"
 
 # Test: get member info
 shelltest test_case "get member info"
-result=$($TARFILE_CMD get-member-info "$archive" "$TEST_FILE" --json)
+result=$($TARFILE_CMD --json get-member-info "$archive" "$TEST_FILE")
 shelltest assert_contains "$result" '"name"' "get-member-info should return member name"
 shelltest assert_contains "$result" '"size"' "get-member-info should return member size"
 shelltest assert_contains "$result" '"mtime"' "get-member-info should return modification time"
@@ -152,31 +152,31 @@ shelltest assert_not_empty "$result" "update-member should return success messag
 # Test: create archive with exclude pattern
 shelltest test_case "create archive with exclude pattern"
 exclude_archive="exclude_archive.tar"
-result=$($TARFILE_CMD create "$exclude_archive" "$TEST_DIR" --exclude "*.txt")
+result=$($TARFILE_CMD create-archive "$exclude_archive" "$TEST_DIR" --exclude "*.txt")
 shelltest assert_file_exists "$exclude_archive" "create should create archive with exclusions"
 
 # Test: create archive with include pattern
 shelltest test_case "create archive with include pattern"
 include_archive="include_archive.tar"
-result=$($TARFILE_CMD create "$include_archive" "$TEST_DIR" --include "*.txt")
+result=$($TARFILE_CMD create-archive "$include_archive" "$TEST_DIR" --include "*.txt")
 shelltest assert_file_exists "$include_archive" "create should create archive with inclusions"
 
 # Test: create archive with owner mapping
 shelltest test_case "create archive with owner mapping"
 owner_archive="owner_archive.tar"
-result=$($TARFILE_CMD create "$owner_archive" "$TEST_FILE" --owner "testuser")
+result=$($TARFILE_CMD create-archive "$owner_archive" "$TEST_FILE" --owner "testuser")
 shelltest assert_file_exists "$owner_archive" "create should create archive with owner mapping"
 
 # Test: create archive with group mapping
 shelltest test_case "create archive with group mapping"
 group_archive="group_archive.tar"
-result=$($TARFILE_CMD create "$group_archive" "$TEST_FILE" --group "testgroup")
+result=$($TARFILE_CMD create-archive "$group_archive" "$TEST_FILE" --group "testgroup")
 shelltest assert_file_exists "$group_archive" "create should create archive with group mapping"
 
 # Test: create archive with numeric owner
 shelltest test_case "create archive with numeric owner"
 numeric_owner_archive="numeric_owner_archive.tar"
-result=$($TARFILE_CMD create "$numeric_owner_archive" "$TEST_FILE" --numeric-owner)
+result=$($TARFILE_CMD create-archive "$numeric_owner_archive" "$TEST_FILE" --numeric-owner)
 shelltest assert_file_exists "$numeric_owner_archive" "create should create archive with numeric owner"
 
 # Test: extract with preserve permissions

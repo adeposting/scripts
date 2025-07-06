@@ -84,7 +84,7 @@ shelltest assert_contains "$result" "testdir/subdir/deep.txt" "recursive iglob s
 # Test: escape command - basic characters
 shelltest test_case "escape command - basic characters"
 result=$($GLOB_CMD escape "file[1].txt")
-shelltest assert_contains "$result" "file\\[1\\].txt" "escape should escape special characters"
+shelltest assert_contains "$result" "file[[]1].txt" "escape should escape special characters"
 
 # Test: escape command - multiple special characters
 shelltest test_case "escape command - multiple special characters"
@@ -146,20 +146,20 @@ shelltest assert_contains "$result" "../testfile.txt" "glob should work with ../
 # Test: JSON output
 shelltest test_case "JSON output"
 setup_test_dir
-result=$($GLOB_CMD glob "*.txt" --json)
+result=$($GLOB_CMD --json glob "*.txt")
 shelltest assert_contains "$result" "[" "JSON output should be array"
 shelltest assert_contains "$result" "]" "JSON output should be array"
 
 # Test: dry-run mode
 shelltest test_case "dry-run mode"
 setup_test_dir
-result=$($GLOB_CMD glob "*.txt" --dry-run)
+result=$($GLOB_CMD --dry-run glob "*.txt")
 shelltest assert_contains "$result" "Would search for files matching" "dry-run should show what would be done"
 
 # Test: verbose mode
 shelltest test_case "verbose mode"
 setup_test_dir
-result=$($GLOB_CMD glob "*.txt" --verbose 2>&1)
+result=$($GLOB_CMD --verbose glob "*.txt" 2>&1)
 shelltest assert_contains "$result" "glob" "verbose should show command being executed"
 
 # Test: escape command - complex pattern

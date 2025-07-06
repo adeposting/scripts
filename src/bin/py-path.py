@@ -202,9 +202,52 @@ def stat(path_str: str, format_str: str = "size") -> str:
         return str(stat_info)
 
 
+def samefile(path1: str, path2: str) -> bool:
+    """Check if two paths refer to the same file."""
+    return Path(path1).samefile(Path(path2))
+
+
+def with_name(path_str: str, name: str) -> str:
+    """Replace filename in path."""
+    return str(Path(path_str).with_name(name))
+
+
+def with_suffix(path_str: str, suffix: str) -> str:
+    """Replace file extension in path."""
+    return str(Path(path_str).with_suffix(suffix))
+
+
+def relative_to(path_str: str, base: str) -> str:
+    """Get relative path from base."""
+    return str(Path(path_str).relative_to(Path(base)))
+
+
+def home() -> str:
+    """Get home directory."""
+    return str(Path.home())
+
+
+def cwd() -> str:
+    """Get current working directory."""
+    return str(Path.cwd())
+
+
+
+
+
 def chmod(path_str: str, mode: int) -> None:
     """Change file permissions."""
     Path(path_str).chmod(mode)
+
+
+def chown(path_str: str, owner: str) -> None:
+    """Change file owner."""
+    import pwd
+    import os
+    uid = pwd.getpwnam(owner).pw_uid
+    os.chown(path_str, uid, -1)
+
+
 
 
 def expanduser(path_str: str) -> str:
@@ -385,10 +428,37 @@ Examples:
     stat_parser.add_argument('--format', choices=['size', 'mtime', 'ctime', 'atime', 'mode', 'uid', 'gid'], 
                            default='size', help='Stat field to return')
     
+    # Samefile command
+    samefile_parser = subparsers.add_parser('samefile', help='Check if two paths refer to the same file')
+    samefile_parser.add_argument('path1', help='First path to compare')
+    samefile_parser.add_argument('path2', help='Second path to compare')
+    
+    # Path manipulation commands
+    with_name_parser = subparsers.add_parser('with-name', help='Replace filename in path')
+    with_name_parser.add_argument('path', help='Original path')
+    with_name_parser.add_argument('name', help='New filename')
+    
+    with_suffix_parser = subparsers.add_parser('with-suffix', help='Replace file extension in path')
+    with_suffix_parser.add_argument('path', help='Original path')
+    with_suffix_parser.add_argument('suffix', help='New extension')
+    
+    relative_to_parser = subparsers.add_parser('relative-to', help='Get relative path from base')
+    relative_to_parser.add_argument('base', help='Base path')
+    relative_to_parser.add_argument('path', help='Path to make relative')
+    
+    home_parser = subparsers.add_parser('home', help='Get home directory')
+    
+    cwd_parser = subparsers.add_parser('cwd', help='Get current working directory')
+    
     # Permission operations
     chmod_parser = subparsers.add_parser('chmod', help='Change file permissions')
     chmod_parser.add_argument('path', help='Path to change permissions for')
     chmod_parser.add_argument('mode', type=int, help='Permission mode (octal)')
+    
+    chown_parser = subparsers.add_parser('chown', help='Change file owner')
+    chown_parser.add_argument('path', help='Path to change owner for')
+    chown_parser.add_argument('owner', help='New owner')    
+
     
     # Path expansion commands
     expanduser_parser = subparsers.add_parser('expanduser', help='Expand user home directory')
@@ -484,8 +554,22 @@ Examples:
             print(readlink(args.path))
         elif args.command == 'stat':
             print(stat(args.path, args.format))
+        elif args.command == 'samefile':
+            print(samefile(args.path1, args.path2))
+        elif args.command == 'with-name':
+            print(with_name(args.path, args.name))
+        elif args.command == 'with-suffix':
+            print(with_suffix(args.path, args.suffix))
+        elif args.command == 'relative-to':
+            print(relative_to(args.path, args.base))
+        elif args.command == 'home':
+            print(home())
+        elif args.command == 'cwd':
+            print(cwd())
         elif args.command == 'chmod':
             chmod(args.path, args.mode)
+        elif args.command == 'chown':
+            chown(args.path, args.owner)
         elif args.command == 'expanduser':
             print(expanduser(args.path))
         elif args.command == 'expandvars':

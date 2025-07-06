@@ -110,7 +110,6 @@ Examples:
     parser.add_argument('--json', action='store_true', help='Output as JSON')
     parser.add_argument('--dry-run', action='store_true', help='Show what would be done without doing it')
     parser.add_argument('--verbose', action='store_true', help='Verbose output')
-    parser.add_argument('--capture-output', action='store_true', help='Capture output')
     parser.add_argument('--text', action='store_true', default=True, help='Text mode (default)')
     parser.add_argument('--timeout', type=int, help='Timeout in seconds')
     parser.add_argument('--check', action='store_true', help='Check return code')
@@ -123,6 +122,7 @@ Examples:
     # Command execution
     run_parser = subparsers.add_parser('run', help='Run command and return result')
     run_parser.add_argument('args', nargs='+', help='Command and arguments')
+    run_parser.add_argument('--capture-output', action='store_true', help='Capture output')
     
     call_parser = subparsers.add_parser('call', help='Run command and return return code')
     call_parser.add_argument('args', nargs='+', help='Command and arguments')
@@ -165,7 +165,8 @@ Examples:
             if args.dry_run:
                 print(f"Would run: {' '.join(args.args)}")
                 return
-            result = run(args.args, args.capture_output, args.text, args.timeout, 
+            capture_output = getattr(args, 'capture_output', False)
+            result = run(args.args, capture_output, args.text, args.timeout, 
                         args.check, args.shell, args.cwd, env_dict)
         elif args.command == 'call':
             if args.dry_run:

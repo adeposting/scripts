@@ -123,34 +123,19 @@ def mac_ver() -> tuple:
     return platform.mac_ver()
 
 
-def java_ver() -> tuple:
-    """Get Java version information."""
-    return platform.java_ver()
-
-
-def dist() -> tuple:
-    """Get Linux distribution information."""
-    return platform.dist()
-
-
-def linux_distribution() -> tuple:
-    """Get Linux distribution information."""
-    return platform.linux_distribution()
-
-
 def system_alias() -> tuple:
     """Get system alias information."""
-    return platform.system_alias()
+    return platform.system_alias(system(), release(), version())
 
 
 def machine_alias() -> tuple:
     """Get machine alias information."""
-    return platform.machine_alias()
+    return platform.machine_alias(machine())
 
 
 def processor_alias() -> tuple:
     """Get processor alias information."""
-    return platform.processor_alias()
+    return platform.processor_alias(processor())
 
 
 def all_info() -> Dict[str, Any]:
@@ -175,9 +160,6 @@ def all_info() -> Dict[str, Any]:
         'libc_ver': libc_ver(),
         'win32_ver': win32_ver(),
         'mac_ver': mac_ver(),
-        'java_ver': java_ver(),
-        'dist': dist(),
-        'linux_distribution': linux_distribution(),
         'system_alias': system_alias(),
         'machine_alias': machine_alias(),
         'processor_alias': processor_alias()
@@ -230,9 +212,6 @@ Examples:
     subparsers.add_parser('libc-ver', help='Get libc version information')
     subparsers.add_parser('win32-ver', help='Get Windows version information')
     subparsers.add_parser('mac-ver', help='Get macOS version information')
-    subparsers.add_parser('java-ver', help='Get Java version information')
-    subparsers.add_parser('dist', help='Get Linux distribution information')
-    subparsers.add_parser('linux-distribution', help='Get Linux distribution information')
     
     # Alias commands
     subparsers.add_parser('system-alias', help='Get system alias information')
@@ -289,12 +268,6 @@ Examples:
             result = win32_ver()
         elif args.command == 'mac-ver':
             result = mac_ver()
-        elif args.command == 'java-ver':
-            result = java_ver()
-        elif args.command == 'dist':
-            result = dist()
-        elif args.command == 'linux-distribution':
-            result = linux_distribution()
         elif args.command == 'system-alias':
             result = system_alias()
         elif args.command == 'machine-alias':

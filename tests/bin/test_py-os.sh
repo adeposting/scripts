@@ -243,21 +243,21 @@ shelltest assert_contains "$result" "nested.py" "walk should find nested.py"
 # Test: JSON output
 shelltest test_case "JSON output"
 setup_test_dir
-result=$($OS_CMD listdir --json)
+result=$($OS_CMD --json listdir)
 shelltest assert_contains "$result" "[" "JSON output should be array"
 shelltest assert_contains "$result" "]" "JSON output should be array"
 
 # Test: dry-run mode
 shelltest test_case "dry-run mode"
 setup_test_dir
-result=$($OS_CMD remove testfile.txt --dry-run)
+result=$($OS_CMD --dry-run remove testfile.txt)
 shelltest assert_contains "$result" "Would remove file" "dry-run should show what would be done"
 shelltest assert_file_exists "testfile.txt" "dry-run should not actually remove file"
 
 # Test: verbose mode
 shelltest test_case "verbose mode"
 setup_test_dir
-result=$($OS_CMD listdir --verbose 2>&1)
+result=$($OS_CMD --verbose listdir 2>&1)
 shelltest assert_contains "$result" "listdir" "verbose should show command being executed"
 
 # Clean up
