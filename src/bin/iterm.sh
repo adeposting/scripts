@@ -47,11 +47,9 @@ iterm() {
         shlog debug "Command argument detected: $cmd"
       fi
 
-      local escaped_cwd
-      escaped_cwd="$(printf '%q' "$PWD")"
 
       shlog info "Opening iTerm in directory: $PWD"
-      [[ -n "$cmd" ]] && shlog info "Running command: $cmd"
+      [[ -n "$cmd" ]] && shlog info "Running command '$cmd'"
 
       osascript <<EOF
 tell application "iTerm"
@@ -61,7 +59,7 @@ tell application "iTerm"
     tell newWindow
         delay 0.5
         tell current session
-            write text "cd ${escaped_cwd}; ${cmd}"
+            write text "cd '$PWD'; ${cmd}"
         end tell
     end tell
 end tell
