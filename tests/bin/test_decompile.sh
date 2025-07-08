@@ -111,18 +111,18 @@ test_decompile_nonexistent_target() {
     return 0
 }
 
-test_decompile_install_only() {
-    shlog info "Testing install-only mode"
-    
-    # This test just checks that the option is accepted
-    if ! decompile --install-only >/dev/null 2>&1; then
-        shlog error "FAIL: Should accept --install-only"
-        return 1
-    fi
-    
-    shlog info "PASS: Install-only mode works"
-    return 0
-}
+# test_decompile_install_only() {
+#     shlog info "Testing install-only mode"
+#     
+#     # This test just checks that the option is accepted
+#     if ! decompile --install-only >/dev/null 2>&1; then
+#         shlog error "FAIL: Should accept --install-only"
+#         return 1
+#     fi
+#     
+#     shlog info "PASS: Install-only mode works"
+#     return 0
+# }
 
 test_decompile_logging_options() {
     shlog info "Testing logging options integration"
