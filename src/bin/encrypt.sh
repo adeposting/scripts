@@ -1,164 +1,101 @@
 #!/bin/bash
 
-# Cross-shell compatible error handling
 set -oue pipefail
 
 encrypt_help() {
     shlog _begin-help-text
     echo
-    echo "encrypt.sh - File encryption utility"
+    echo "encrypt.sh"
     echo
-    echo "  Usage: $0 --input <path>... --output <filename> [OPTIONS]"
-    echo
-    echo "Description:"
-    echo "  Encrypts files and directories using GPG and creates archives."
+    echo "  Usage: encrypt --input <path>... [--output <archive>] [--delete]"
     echo
     echo "Options:"
-    echo "  --input <path>...        input files/directories to encrypt"
-    echo "  --output <filename>      output filename for encrypted archive"
-    echo "  --keep                   keep original files after encryption"
-    echo "  --recipient <email>      GPG recipient email (optional)"
+    echo "  --input <path>...    → one or more files or directories to encrypt"
+    echo "  --output <file>      → output archive name (defaults to individual archives if omitted)"
+    echo "  --delete             → securely delete inputs after encryption"
     echo
-    shlog _print-common-help
-    echo
-    echo "Examples:"
-    echo "  $0 --input file.txt --output encrypted.tar.gz.gpg"
-    echo "  $0 --input dir1 dir2 --output backup.tar.gz.gpg --keep"
-    echo "  $0 --input config/ --output config.tar.gz.gpg --recipient user@example.com"
+    echo "Behavior:"
+    echo "  - If --output is not given, each input is encrypted into its own .tar.gz.gpg archive"
+    echo "  - If --output is given, all inputs are combined into one archive"
+    echo "  - If --delete is not given, the user will be prompted"
     echo
     shlog _end-help-text
 }
 
-encrypt() {
-    local input=()
-    local output=""
-    local keep=false
-    local recipient=""
-    
-    # Parse arguments
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            --input)
-                if [[ $# -lt 2 ]]; then
-                    echo "Error: --input requires at least one path" >&2
-                    return 1
-                fi
-                shift
-                while [[ $# -gt 0 && "$1" != "--"* ]]; do
-                    input+=("$1")
-                    shift
-                done
-                ;;
-            --output)
-                if [[ $# -lt 2 ]]; then
-                    echo "Error: --output requires a filename" >&2
-                    return 1
-                fi
-                output="$2"
-                shift 2
-                ;;
-            --keep)
-                keep=true
-                shift
-                ;;
-            --recipient)
-                if [[ $# -lt 2 ]]; then
-                    echo "Error: --recipient requires an email" >&2
-                    return 1
-                fi
-                recipient="$2"
-                shift 2
-                ;;
-            --help|-h)
-                encrypt_help
-                return 0
-                ;;
-            *)
-                # Let shlog handle logging options automatically
-                local remaining_args
-                if ! remaining_args=$(shlog _parse-and-export "$@"); then
-                    return 1
-                fi
-                if [[ -n "$remaining_args" ]]; then
-                    echo "Error: Unknown argument: $1" >&2
-                    encrypt_help
-                    return 1
-                fi
-                break
-                ;;
-        esac
-    done
-    
-    # Validate required arguments
-    if [[ ${#input[@]} -eq 0 ]]; then
-        echo "Error: No input specified" >&2
-        encrypt_help
-        return 1
-    fi
-    
-    if [[ -z "$output" ]]; then
-        echo "Error: --output is required" >&2
-        encrypt_help
-        return 1
-    fi
-    
-    # Setup GPG loopback if available
-    if command -v gpgrc >/dev/null 2>&1; then
-        gpgrc init >/dev/null 2>&1
-    else
-        shlog warn "gpgrc command not available, GPG loopback may not work"
-    fi
-    
-    # Create temporary directory for archive
-    local temp_dir
-    temp_dir=$(mktemp -d)
-    local archive_path="$temp_dir/archive.tar.gz"
-    
-    # Create archive
-    if [[ ${#input[@]} -eq 1 && -f "${input[0]}" ]]; then
-        # Single file
-        tar -czf "$archive_path" "${input[0]}"
-    else
-        # Multiple files or directory
-        tar -czf "$archive_path" "${input[@]}"
-    fi
-    
-    # Encrypt the archive
-    local gpg_args=()
-    if [[ -n "$recipient" ]]; then
-        gpg_args+=("--recipient" "$recipient")
-    fi
-    
-    if gpg --encrypt "${gpg_args[@]}" "$archive_path"; then
-        # Move encrypted file to output location
-        mv "$archive_path.gpg" "$output"
-        
-        # Clean up source files unless --keep is specified
-        if [[ "$keep" != "true" ]]; then
-            for f in "${input[@]}"; do
-                if command -v deleter >/dev/null 2>&1; then
-                    deleter --force "$f"
-                else
-                    shlog warn "deleter command not available, using rm -rf"
-                    rm -rf "$f"
-                fi
-            done
-        fi
-        
-        # Clean up temporary directory
-        if command -v deleter >/dev/null 2>&1; then
-            deleter --force "$temp_dir"
-        else
-            shlog warn "deleter command not available, using rm -rf"
-            rm -rf "$temp_dir"
-        fi
-        
-        echo "Encryption complete: $output"
-    else
-        echo "Encryption failed" >&2
-        rm -rf "$temp_dir"
-        return 1
-    fi
+_ensure_gpg_loopback_enabled() {
+  local conf="$HOME/.gnupg/gpg-agent.conf"
+  local opt="allow-loopback-pinentry"
+  mkdir -p "$(dirname "$conf")"
+  if ! grep -Fxq "$opt" "$conf" 2>/dev/null; then
+    echo "$opt" >> "$conf"
+  fi
+  gpgconf --kill gpg-agent
 }
 
+encrypt() {
+  local input=()
+  local output=""
+  local delete=false
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --input)
+        shift
+        if [[ $# -eq 0 || "$1" == "--"* ]]; then
+          shlog error "--input requires at least one path"; return 1
+        fi
+        while [[ $# -gt 0 && "$1" != "--"* ]]; do
+          input+=("$1")
+          shift
+        done
+        ;;
+      --output)
+        if [[ $# -lt 2 || "$2" == "--"* ]]; then
+          shlog error "--output requires a filename"; return 1
+        fi
+        output="$2"
+        shift 2
+        ;;
+      --delete)
+        delete=true
+        shift
+        ;;
+      --help|-h)
+        encrypt_help
+        return 0
+        ;;
+      *)
+        encrypt_help
+        shlog error "Unknown argument: $1"
+        return 1
+        ;;
+    esac
+  done
+
+  [[ ${#input[@]} -eq 0 ]] && slog error "No input specified" && return 1
+
+  _ensure_gpg_loopback_enabled
+  local -r gpg_command='gpg --pinentry-mode loopback --symmetric --cipher-algo AES256 -o'
+  if [[ -n "$output" ]]; then
+    [[ "$output" != *.tar.gz.gpg ]] && output="${output%.tar.gz.gpg}.tar.gz.gpg"
+    tar -czf - "${input[@]}" | $gpg_command "$output"
+  else
+    for item in "${input[@]}"; do
+      local name="$(basename "$item")"
+      local archive="${name}.tar.gz"
+      [[ -f "$item" ]] && archive="${name%.*}.tar.gz"
+      tar -czf - "$item" | $gpg_command "${archive}.gpg"
+    done
+  fi
+
+  if $delete; then
+    deleter "${input[@]}"
+  else
+    read -rp "Delete original files/directories? [y/N]: " resp
+    [[ "$resp" =~ ^[Yy](es)?$ ]] && deleter "${input[@]}"
+  fi
+}
+
+
 encrypt "$@"
+
