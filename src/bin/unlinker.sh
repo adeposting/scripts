@@ -60,7 +60,7 @@ unlinker() {
         case "$1" in
             --source)
                 if [[ $# -lt 2 ]]; then
-                    echo "Error: --source requires a directory" >&2
+                    shlog error "--source requires a directory"
                     unlinker_help
                     return 1
                 fi
@@ -69,7 +69,7 @@ unlinker() {
                 ;;
             --destination)
                 if [[ $# -lt 2 ]]; then
-                    echo "Error: --destination requires a directory" >&2
+                    shlog error "--destination requires a directory"
                     unlinker_help
                     return 1
                 fi
@@ -100,14 +100,14 @@ unlinker() {
                     return 1
                 fi
                 if [[ -n "$remaining_args" ]]; then
-                    echo "Error: Unknown option: $1" >&2
+                    shlog error "Unknown option: $1"
                     unlinker_help
                     return 1
                 fi
                 break
                 ;;
             *)
-                echo "Error: Unknown argument: $1" >&2
+                shlog error "Unknown argument: $1"
                 unlinker_help
                 return 1
                 ;;
@@ -116,17 +116,17 @@ unlinker() {
     
     # Validate that at least one directory is specified
     if [[ -z "$source" && -z "$destination" ]]; then
-        echo "At least one of --source or --destination must be provided" >&2
+        shlog error "At least one of --source or --destination must be provided"
         return 1
     fi
     
     if [[ -n "$source" && ! -d "$source" ]]; then
-        echo "Error: Source directory does not exist: $source" >&2
+        shlog error "Source directory does not exist: $source"
         return 1
     fi
     
     if [[ -n "$destination" && ! -d "$destination" ]]; then
-        echo "Error: Destination directory does not exist: $destination" >&2
+        shlog error "Destination directory does not exist: $destination"
         return 1
     fi
     
@@ -137,7 +137,7 @@ unlinker() {
         if command -v shlog >/dev/null 2>&1; then
             shlog info "Unlinking based on source: $source"
         else
-            echo "Unlinking based on source: $source"
+            shlog info "Unlinking based on source: $source"
         fi
         
         # Change to source directory for relative paths
@@ -152,7 +152,7 @@ unlinker() {
                 files=$(lister _get-files)
             fi
         else
-            echo "Error: lister command not available" >&2
+            shlog error "lister command not available"
             return 1
         fi
         
@@ -169,14 +169,14 @@ unlinker() {
                             if command -v shlog >/dev/null 2>&1; then
                                 shlog info "[dry-run] Would remove symlink: $link_path"
                             else
-                                echo "[dry-run] Would remove symlink: $link_path"
+                                shlog info "[dry-run] Would remove symlink: $link_path"
                             fi
                         else
                             rm "$link_path" && {
                                 if command -v shlog >/dev/null 2>&1; then
                                     shlog info "Removed symlink: $link_path"
                                 else
-                                    echo "Removed symlink: $link_path"
+                                    shlog info "Removed symlink: $link_path"
                                 fi
                                 ((unlinked_count++))
                             }
@@ -190,14 +190,14 @@ unlinker() {
                                 if command -v shlog >/dev/null 2>&1; then
                                     shlog info "[dry-run] Would remove symlink: $link"
                                 else
-                                    echo "[dry-run] Would remove symlink: $link"
+                                    shlog info "[dry-run] Would remove symlink: $link"
                                 fi
                             else
                                 rm "$link" && {
                                     if command -v shlog >/dev/null 2>&1; then
                                         shlog info "Removed symlink: $link"
                                     else
-                                        echo "Removed symlink: $link"
+                                        shlog info "Removed symlink: $link"
                                     fi
                                     ((unlinked_count++))
                                 }
@@ -214,7 +214,7 @@ unlinker() {
         if command -v shlog >/dev/null 2>&1; then
             shlog info "Cleaning destination: $destination"
         else
-            echo "Cleaning destination: $destination"
+            shlog info "Cleaning destination: $destination"
         fi
         
         # Find and remove broken symlinks
@@ -224,14 +224,14 @@ unlinker() {
                     if command -v shlog >/dev/null 2>&1; then
                         shlog info "[dry-run] Would remove broken symlink: $link"
                     else
-                        echo "[dry-run] Would remove broken symlink: $link"
+                        shlog info "[dry-run] Would remove broken symlink: $link"
                     fi
                 else
                     rm "$link" && {
                         if command -v shlog >/dev/null 2>&1; then
                             shlog info "Removed broken symlink: $link"
                         else
-                            echo "Removed broken symlink: $link"
+                            shlog info "Removed broken symlink: $link"
                         fi
                         ((unlinked_count++))
                     }
@@ -244,13 +244,13 @@ unlinker() {
         if command -v shlog >/dev/null 2>&1; then
             shlog info "[dry-run] Would remove $unlinked_count symlinks"
         else
-            echo "[dry-run] Would remove $unlinked_count symlinks"
+            shlog info "[dry-run] Would remove $unlinked_count symlinks"
         fi
     else
         if command -v shlog >/dev/null 2>&1; then
             shlog info "Successfully removed $unlinked_count symlinks"
         else
-            echo "Successfully removed $unlinked_count symlinks"
+            shlog info "Successfully removed $unlinked_count symlinks"
         fi
     fi
 }

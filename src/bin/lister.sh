@@ -57,7 +57,7 @@ _lister_get_files() {
         case "$1" in
             --include)
                 if [[ $# -lt 2 ]]; then
-                    echo "Error: --include requires a pattern" >&2
+                    shlog error "--include requires a pattern"
                     return 1
                 fi
                 INCLUDE_PATTERN="$2"
@@ -65,7 +65,7 @@ _lister_get_files() {
                 ;;
             --exclude)
                 if [[ $# -lt 2 ]]; then
-                    echo "Error: --exclude requires a pattern" >&2
+                    shlog error "--exclude requires a pattern"
                     return 1
                 fi
                 EXCLUDE_PATTERN="$2"
@@ -88,7 +88,7 @@ _lister_get_files() {
                 shift
                 ;;
             -*)
-                echo "Error: Unknown option $1" >&2
+                shlog error "Unknown option $1"
                 return 1
                 ;;
             *)

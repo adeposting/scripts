@@ -64,7 +64,7 @@ linker() {
         case "$1" in
             --source)
                 if [[ $# -lt 2 ]]; then
-                    echo "Error: --source requires a directory" >&2
+                    shlog error "--source requires a directory"
                     linker_help
                     return 1
                 fi
@@ -73,7 +73,7 @@ linker() {
                 ;;
             --destination)
                 if [[ $# -lt 2 ]]; then
-                    echo "Error: --destination requires a directory" >&2
+                    shlog error "--destination requires a directory"
                     linker_help
                     return 1
                 fi
@@ -86,7 +86,7 @@ linker() {
                 ;;
             --rename)
                 if [[ $# -lt 2 ]]; then
-                    echo "Error: --rename requires a sed expression" >&2
+                    shlog error "--rename requires a sed expression"
                     linker_help
                     return 1
                 fi
@@ -113,14 +113,14 @@ linker() {
                     return 1
                 fi
                 if [[ -n "$remaining_args" ]]; then
-                    echo "Error: Unknown option: $1" >&2
+                    shlog error "Unknown option: $1"
                     linker_help
                     return 1
                 fi
                 break
                 ;;
             *)
-                echo "Error: Unknown option: $1" >&2
+                shlog error "Unknown option: $1" >&2
                 linker_help
                 return 1
                 ;;
@@ -129,28 +129,28 @@ linker() {
     
     # Validate required arguments
     if [[ -z "$source_dir" || -z "$destination_dir" ]]; then
-        echo "Error: --source and --destination are required" >&2
+        shlog error "--source and --destination are required"
         linker_help
         return 1
     fi
     
     if [[ ! -d "$source_dir" ]]; then
-        echo "Error: Source directory does not exist: $source_dir" >&2
+        shlog error "Source directory does not exist: $source_dir"
         return 1
     fi
     
     if [[ ! -d "$destination_dir" ]]; then
-        echo "Error: Destination directory does not exist: $destination_dir" >&2
+        shlog error "Destination directory does not exist: $destination_dir"
         return 1
     fi
     
     # Change to source directory for relative paths
     cd "$source_dir" || return 1
     
-    echo "Linking from: $source_dir"
-    echo "Linking into: $destination_dir"
+    shlog info "Linking from: $source_dir"
+    shlog info "Linking into: $destination_dir"
     if [[ -n "$rename_expr" ]]; then
-        echo "Using rename expression: $rename_expr"
+        shlog info "Using rename expression: $rename_expr"
     fi
     
     # Get files using lister
@@ -162,12 +162,12 @@ linker() {
             files=$(lister _get-files)
         fi
     else
-        echo "Error: lister command not available" >&2
+        shlog error "lister command not available"
         return 1
     fi
     
     if [[ -z "$files" ]]; then
-        echo "No files found to link"
+        shlog info "No files found to link"
         return 0
     fi
     
@@ -190,11 +190,11 @@ linker() {
     
     # Report existing files if not forcing
     if [[ ${#existing_files[@]} -gt 0 && "$force" != "true" ]]; then
-        echo "Error: The following files already exist in destination:" >&2
+        shlog error "The following files already exist in destination:"
         for path in "${existing_files[@]}"; do
             echo "  $path" >&2
         done
-        echo "Use --force to override existing files" >&2
+        shlog error "Use --force to override existing files"
         return 1
     fi
     
@@ -216,7 +216,7 @@ linker() {
         dst_dir=$(dirname "$dst_path")
         if [[ ! -d "$dst_dir" ]]; then
             mkdir -p "$dst_dir" || {
-                echo "Error: Failed to create directory: $dst_dir" >&2
+                shlog error "Failed to create directory: $dst_dir"
                 continue
             }
         fi
@@ -228,14 +228,14 @@ linker() {
         
         # Create symlink
         if ln -s "$src_path" "$dst_path" 2>/dev/null; then
-            echo "Linked: $src_path → $dst_path"
+            shlog info "Linked: $src_path → $dst_path"
             ((linked_count++))
         else
-            echo "Error: Failed to link: $src_path → $dst_path" >&2
+            shlog error "Failed to link: $src_path → $dst_path"
         fi
     done <<< "$files"
     
-    echo "Successfully linked $linked_count files"
+    shlog info "Successfully linked $linked_count files"
 }
 
 linker "$@"
