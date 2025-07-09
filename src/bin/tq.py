@@ -1,5 +1,65 @@
 #!/usr/bin/env python3
 
+
+# TODO
+#
+# NEXT STEPS - Milestone 2
+#
+# - some filters make a *selection* over lines/chars/words/fields, some make a *transformation*
+# - lets introduce filters 
+# 	- 'lines' which is for all lines
+# 	- 'chars' which is for chars on each line
+# 	- 'words[:delim]' which is for words separated by delims 
+# 	- 'fields' is used when words are split and have indices, but sometimes fields is used interchangably for some filters
+# - selection syntax works like this 'lines|uniq' for uniq lines or 'chars|uniq' for all uniq chars on a line or 'words|uniq' for uniq words on a line
+# - different filters have different defaults
+# - but there are no filters that are specific to lines/chars/words, so even in the below e.g. count which currents counts chars per line becomes chars|count, but lines|count would count the number of lines
+# - but selections can also be applied to other things, like (lines|head:1) could select only the first line
+# - if selections occur in parenthesis, then we can apply a selection then a transform only on the selection, so (lines|head:1|upper) would only make the first line uppercase
+# - modify the existing script with this new functionality
+# - do not care about backwards compatibility
+# - add to the help text, but don't remove most of the detail that is already there, just add to it or modify any changed filters
+#
+# NEXT STEPS - Milestone 3
+#
+# - now lets implement a comprehensive suite of new filters
+# - some of these may not make sense for lines or chars or words, lets think about this first
+# - some may make sense with a default for lines, chars or words, lets think about this first
+#
+# - grep[:pattern]: Output only lines/chars/words matching a regex pattern.
+# - grep-v[:pattern]: Output only lines/chars/words NOT matching a pattern (inverse grep).
+# - head[:n]: Output the first n lines/chars/words (default 10).
+# - tail[:n]: Output the last n lines/chars/words (default 10).
+# - nth[:n]: Output the nth line/char/word (1-based).
+# - range[:start[:end]]: Output lines/chars/words from start to end (inclusive, 1-based).
+# - cut[:delim[:fields]]: Split lines/chars/words by delimiter and output specified field (e.g., cut:,:1,3).
+# - word[:n[:delim]]: Output the nth word from each line (default delim: whitespace.
+# - split[:delim]: Split each line into multiple lines/chars/words by delimiter.
+# - count: Output the number of lines/chars/words.
+# - sum[:field[:delim]]: Sum numeric values in a field.
+# - min[:field[:delim]]: Minimum value in a field.
+# - max[:field[:delim]]: Maximum value in a field.
+# - avg[:field[:delim]]: Average value in a field.
+# - replace[:pattern[:replacement]]: Regex replace pattern with replacement.
+# - match[:pattern]: Output only parts of line matching pattern
+# - strip-ansi: Remove ANSI color codes from lines/chars/words.
+# - json: Output lines/chars/words as a JSON array.
+# - csv[:delim]: Output lines/chars/words as CSV, optionally with a custom delimiter.
+# - prepend[:text]: Prepend text to each line.
+# - append[:text]: Append text to each line.
+# - wrap[:prefix[:suffix]]: Wrap each line with prefix and suffix.
+# - uniq: Remove consecutive duplicate lines/chars/words (like Unix uniq).
+# - group-by[:field[:delim]]: Group lines/chars/words by a field value.
+# - sort-by[:field[:delim]]: Sort lines/chars/words by a field.
+# - reverse: Reverse the order of all lines/chars/words (not the content), change reverse for chars to reverse-chars.
+# - shuffle[:delim]: Randomly shuffle words with optional delim
+# - at[:index1,index2,...]
+# - jq-inspired (structure/transform)
+# - to-array: Output all lines/chars/words as a JSON array.
+# - from-json: Parse each line as JSON and allow field extraction
+#
+
+
 """
 tq - commandline plaintext processor [version 0.1.0]
 
