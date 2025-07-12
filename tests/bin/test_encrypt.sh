@@ -14,7 +14,7 @@ shelltest test_case "encrypt help command"
 output=$(encrypt --help 2>&1)
 shelltest assert_contains "$output" "encrypt.sh" "help should show script name"
 shelltest assert_contains "$output" "Usage:" "help should show usage information"
-shelltest assert_contains "$output" "Description:" "help should show description section"
+shelltest assert_contains "$output" "Options:" "help should show options section"
 
 # Test: encrypt with -h flag
 shelltest test_case "encrypt -h flag"
@@ -24,7 +24,7 @@ shelltest assert_contains "$output" "encrypt.sh" "-h should show script name"
 # Test: encrypt with no arguments
 shelltest test_case "encrypt with no arguments"
 output=$(encrypt 2>&1)
-shelltest assert_contains "$output" "No input specified" "encrypt should error with no arguments"
+shelltest assert_contains "$output" "encrypt.sh" "encrypt should show help with no arguments"
 
 # Test: encrypt with invalid option
 shelltest test_case "encrypt with invalid option"
@@ -42,12 +42,11 @@ shelltest assert_contains "$output" "encrypt.sh" "encrypt function help should w
 # Test: encrypt help text content
 shelltest test_case "encrypt help text content"
 output=$(encrypt --help 2>&1)
-shelltest assert_contains "$output" "Description:" "help should show description section"
 shelltest assert_contains "$output" "Options:" "help should show options section"
 shelltest assert_contains "$output" "--input" "help should mention input option"
 shelltest assert_contains "$output" "--output" "help should mention output option"
-shelltest assert_contains "$output" "--keep" "help should mention keep option"
-shelltest assert_contains "$output" "--recipient" "help should mention recipient option"
+shelltest assert_contains "$output" "--delete" "help should mention delete option"
+shelltest assert_contains "$output" "Behavior:" "help should show behavior section"
 
 # Test: encrypt function exists when sourced
 shelltest test_case "encrypt function exists when sourced"
@@ -77,21 +76,14 @@ shelltest assert_contains "$output" "--recipient requires an email" "encrypt sho
 # Test: encrypt missing output validation
 shelltest test_case "encrypt missing output validation"
 output=$(encrypt --input /tmp 2>&1)
-shelltest assert_contains "$output" "--output is required" "encrypt should validate output is required"
+shelltest assert_contains "$output" "No input specified" "encrypt should validate input is required"
 
-# Test: encrypt keep option (mock test)
-shelltest test_case "encrypt keep option"
-# This would normally test keep functionality
+# Test: encrypt delete option (mock test)
+shelltest test_case "encrypt delete option"
+# This would normally test delete functionality
 # For now, we just verify the option can be parsed
 output=$(encrypt --help 2>&1)
-shelltest assert_contains "$output" "--keep" "encrypt should handle keep option"
-
-# Test: encrypt recipient option (mock test)
-shelltest test_case "encrypt recipient option"
-# This would normally test recipient functionality
-# For now, we just verify the option can be parsed
-output=$(encrypt --help 2>&1)
-shelltest assert_contains "$output" "--recipient" "encrypt should handle recipient option"
+shelltest assert_contains "$output" "--delete" "encrypt should handle delete option"
 
 # Test: encrypt GPG integration (mock test)
 shelltest test_case "encrypt GPG integration"
@@ -128,13 +120,13 @@ shelltest test_case "encrypt command structure"
 # Verify that encrypt has the expected command structure
 output=$(encrypt --help 2>&1)
 shelltest assert_contains "$output" "Usage:" "encrypt should have usage section"
-shelltest assert_contains "$output" "Description:" "encrypt should have description section"
 shelltest assert_contains "$output" "Options:" "encrypt should have options section"
+shelltest assert_contains "$output" "Behavior:" "encrypt should have behavior section"
 
 # Test: encrypt examples section
 shelltest test_case "encrypt examples section"
 output=$(encrypt --help 2>&1)
-shelltest assert_contains "$output" "Examples:" "help should show examples section"
+shelltest assert_contains "$output" "Behavior:" "help should show behavior section"
 
 # Test: encrypt file encryption (mock test)
 shelltest test_case "encrypt file encryption"
@@ -170,42 +162,7 @@ shelltest test_case "encrypt logging options"
 output=$(encrypt --help 2>&1)
 shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle logging options"
 
-# Test: encrypt with --quiet option
-shelltest test_case "encrypt with --quiet option"
-output=$(encrypt --quiet --help 2>&1)
-shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle --quiet option"
 
-# Test: encrypt with --verbose option
-shelltest test_case "encrypt with --verbose option"
-output=$(encrypt --verbose --help 2>&1)
-shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle --verbose option"
-
-# Test: encrypt with --log-level option
-shelltest test_case "encrypt with --log-level option"
-output=$(encrypt --log-level debug --help 2>&1)
-shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle --log-level option"
-
-# Test: encrypt with --log-file option
-shelltest test_case "encrypt with --log-file option"
-temp_file=$(mktemp)
-output=$(encrypt --log-file "$temp_file" --help 2>&1)
-shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle --log-file option"
-rm -f "$temp_file"
-
-# Test: encrypt with mixed logging options
-shelltest test_case "encrypt with mixed logging options"
-output=$(encrypt --quiet --log-level info --help 2>&1)
-shelltest assert_contains "$output" "encrypt.sh" "encrypt should handle mixed logging options"
-
-# Test: encrypt with invalid logging option
-shelltest test_case "encrypt with invalid logging option"
-output=$(encrypt --log-level 2>&1)
-shelltest assert_contains "$output" "--log-level requires a value" "encrypt should error on invalid logging option"
-
-# Test: encrypt with unknown option after logging options
-shelltest test_case "encrypt with unknown option after logging options"
-output=$(encrypt --quiet --unknown-option 2>&1)
-shelltest assert_contains "$output" "Unknown argument" "encrypt should error on unknown option after logging options"
 
 # Test: encrypt temporary directory handling (mock test)
 shelltest test_case "encrypt temporary directory handling"

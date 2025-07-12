@@ -1,146 +1,169 @@
-#!/bin/sh
+#!/bin/bash
 
-# Exit on errors, undefined vars, and pipeline failures
-set -oeu
+# Cross-shell compatible error handling
+set -euo pipefail
 
-print_short_help() {
-  echo 'Usage: rcat [OPTIONS] <PATH> [PATHS...]'
-  echo
-  echo 'Recursively prints the contents of all files not excluded'
-  echo 'by a .gitignore as a markdown document.'
-  echo
-  echo 'Arguments:'
-  echo '  PATH       The path to a file or directory to process.'
-  echo '  PATHS...   Additional paths to process.'
-  echo
-  echo 'Options:'
-  echo '  -h         Show this help message and exit'
-  echo '  --help     Show the this help message with examples and exit'
-  echo
-}
-
-print_long_help() {
-  print_short_help
-  echo 'Examples:'
-  echo
-  echo 'If we have a directory structure like this:'
-  echo '  src/'
-  echo '    ├── file1.txt'
-  echo '    ├── file2.txt'
-  echo '    └── .gitignore'
-  echo '  notes.txt'
-  echo '  config/'
-  echo '    ├── file3.txt'
-  echo '    └── config.yaml'
-  echo
-  echo 'Where src/file2.txt contains:'
-  echo '  This is file2.'
-  echo
-  echo 'And src/.gitignore contains:'
-  echo '  file1.txt'
-  echo
-  echo 'And notes.txt contains:'
-  echo '  This is notes.'
-  echo
-  echo 'And config.yaml contains:'
-  echo '  description: This is a config file.'
-  echo
-  echo 'Then running this script with the following command:'
-  echo '  rcat src/ notes.txt config/*.yaml'
-  echo
-  echo 'Will print:'
-  echo
-  echo '  src/file2.txt'
-  echo
-  echo '  ```'
-  echo '  This is file2.'
-  echo '  ```'
-  echo
-  echo '  notes.txt'
-  echo
-  echo '  ```'
-  echo '  This is notes.'
-  echo '  ```'
-  echo
-  echo '  config/config.yaml'
-  echo
-  echo '  ```'
-  echo '  description: This is a config file.'
-  echo '  ```'
-  echo
-}
-
-# Function to check if a file is ignored by a .gitignore in parent dirs
-is_ignored() {
-  FILE="$1"
-  DIR=$(dirname "$FILE")
-
-  while [ "$DIR" != "/" ] && [ -n "$DIR" ]; do
-    if [ -f "$DIR/.gitignore" ]; then
-      if git check-ignore --no-index -q --exclude-from="$DIR/.gitignore" "$FILE" 2>/dev/null; then
-        return 0
-      fi
-    fi
-    NEW_DIR=$(dirname "$DIR")
-    if [ "$NEW_DIR" = "$DIR" ]; then
-      break
-    fi
-    DIR="$NEW_DIR"
-  done
-
-  return 1
-}
-
-rcat() {
-  if [ "$#" -eq 0 ]; then
-    echo "Error: No input paths provided." >&2
-    print_short_help
-    exit 1
-  fi
-
-  for arg in "$@"; do
-    case "$arg" in
-      -h) print_short_help; exit 0 ;;
-      --help) print_long_help; exit 0 ;;
-    esac
-  done
-
-  for INPUT_PATH in "$@"; do
-    case "$INPUT_PATH" in
-      -h|--help) continue ;;
-    esac
-
-    case "$INPUT_PATH" in
-      /*) ABS_PATH="$INPUT_PATH" ;;
-      *) ABS_PATH="$(pwd)/$INPUT_PATH" ;;
-    esac
-
-    if [ -f "$ABS_PATH" ]; then
-      ROOT_DIR=$(dirname "$ABS_PATH")
-      FILES="$ABS_PATH"
-    elif [ -d "$ABS_PATH" ]; then
-      ROOT_DIR="$ABS_PATH"
-      FILES=$(find "$ABS_PATH" -type f)
+rcat_help() {
+    shlog _begin-help-text
+    echo
+    echo "rcat.sh - Recursive cat utility"
+    echo
+    echo "  Usage: $0 [OPTIONS] <PATH> [PATHS...]"
+    echo
+    echo "Description:"
+    echo "  Recursively prints the contents of all files. Includes hidden" 
+    echo "  files and respects .gitignore by default."
+    echo
+    echo "Arguments:"
+    echo "  PATH       The path to a file or directory to process."
+    echo "  PATHS...   Additional paths to process."
+    echo
+    if command -v lister >/dev/null 2>&1; then
+        lister _print-common-help
     else
-      echo "Skipping invalid path: $INPUT_PATH" >&2
-      continue
+        echo "File Selection Options:"
+        echo "  --include PATTERN       include files matching pattern"
+        echo "  --exclude PATTERN       exclude files matching pattern"
+        echo "  --no-hidden             exclude hidden files"
+        echo "  --no-gitignore          don't respect .gitignore"
+        echo "  --no-recursive          don't search recursively"
+        echo "  --follow-symlinks       follow symbolic links"
     fi
+    echo
+    shlog _print-common-help
+    echo
+    echo "Examples:"
+    echo "  $0 src/"                      # print all files in src/ directory
+    echo "  $0 --include '\\.txt$' src/"  # only .txt files in src/
+    echo "  $0 file1.txt file2.txt"       # print specific files
+    echo
+    echo "Example with directory structure:"
+    echo "  src/"
+    echo "    ├── file1.txt"
+    echo "    └── file2.txt"
+    echo
+    echo "Output:"
+    echo "  file1.txt"
+    echo
+    echo "  \`\`\`"
+    echo "  content of file1"
+    echo "  \`\`\`"
+    echo
+    echo "  file2.txt"
+    echo
+    echo "  \`\`\`"
+    echo "  content of file2"
+    echo "  \`\`\`"
+    echo
+    shlog _end-help-text
+}
 
-    echo "$FILES" | while IFS= read -r FILE; do
-      if is_ignored "$FILE"; then
-        continue
-      fi
-
-      REL_PATH="${FILE#$ROOT_DIR/}"
-
-      echo "$REL_PATH"
-      echo
-      echo '```'
-      cat "$FILE"
-      echo '```'
-      echo
+# --- Main rcat function ---
+rcat() {
+    local paths=()
+    local lister_args=()
+    
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --include|--exclude|--no-hidden|--no-gitignore|--no-recursive|--follow-symlinks)
+                lister_args+=("$1")
+                if [[ "$1" == "--include" || "$1" == "--exclude" ]]; then
+                    lister_args+=("$2")
+                    shift 2
+                else
+                    shift
+                fi
+                ;;
+            --help|-h)
+                rcat_help
+                return 0
+                ;;
+            --*)
+                # Let shlog handle logging options automatically
+                local remaining_args
+                if ! remaining_args=$(shlog _parse-and-export "$@"); then
+                    return 1
+                fi
+                if [[ -n "$remaining_args" ]]; then
+                    echo "Error: Unknown option $1" >&2
+                    rcat_help
+                    return 1
+                fi
+                break
+                ;;
+            *)
+                paths+=("$1")
+                shift
+                ;;
+        esac
     done
-  done
+    
+    # Check if paths were provided
+    if [[ ${#paths[@]} -eq 0 ]]; then
+        echo "Error: No input paths provided." >&2
+        rcat_help
+        return 1
+    fi
+    
+    # Process each path
+    for input_path in "${paths[@]}"; do
+        case "$input_path" in
+            /*) abs_path="$input_path" ;;
+            *) abs_path="$(pwd)/$input_path" ;;
+        esac
+        
+        if [[ -f "$abs_path" ]]; then
+            # Single file
+            root_dir=$(dirname "$abs_path")
+            if command -v lister >/dev/null 2>&1; then
+                if [[ ${#lister_args[@]} -gt 0 ]]; then
+                    files=$(lister _get-files "${lister_args[@]}" "$abs_path")
+                else
+                    files=$(lister _get-files "$abs_path")
+                fi
+            else
+                # Fallback: just use the file itself
+                files="$abs_path"
+            fi
+        elif [[ -d "$abs_path" ]]; then
+            # Directory
+            root_dir="$abs_path"
+            if command -v lister >/dev/null 2>&1; then
+                if [[ ${#lister_args[@]} -gt 0 ]]; then
+                    files=$(lister _get-files "${lister_args[@]}" "$abs_path")
+                else
+                    files=$(lister _get-files "$abs_path")
+                fi
+            else
+                # Fallback: use find
+                echo "Warning: lister command not available, using basic find fallback" >&2
+                files=$(find "$abs_path" -type f 2>/dev/null | head -10)
+            fi
+        else
+            echo "Skipping invalid path: $input_path" >&2
+            continue
+        fi
+        
+        if [[ -z "$files" ]]; then
+            echo "No files found matching criteria for: $input_path" >&2
+            continue
+        fi
+        
+        # Process each file
+        echo "$files" | while IFS= read -r file; do
+            if [[ -f "$file" ]]; then
+                rel_path="${file#$root_dir/}"
+                
+                echo "$rel_path"
+                echo
+                echo '```'
+                cat "$file"
+                echo '```'
+                echo
+            fi
+        done
+    done
 }
 
 rcat "$@"

@@ -72,7 +72,7 @@ encrypt() {
     esac
   done
 
-  [[ ${#input[@]} -eq 0 ]] && slog error "No input specified" && return 1
+  [[ ${#input[@]} -eq 0 ]] && shlog error "No input specified" && return 1
 
   _ensure_gpg_loopback_enabled
   local -r gpg_command='gpg --pinentry-mode loopback --symmetric --cipher-algo AES256 -o'
